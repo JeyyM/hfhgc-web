@@ -149,13 +149,14 @@
   --font-sans: "Quicksand", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "VAG Rounded Next", ui-sans-serif, system-ui, sans-serif;
 
-  --color-bg-main: #F9F9F9;
+  --color-bg-main: #FFFFFF;
   --color-bg-alt: #FFFFFF;
+  --color-bg-cream: #FFF5E0;
 
-  --color-green-1: #E8F5BD;
-  --color-green-2: #C7EABB;
-  --color-green-3: #A2CB8B;
-  --color-green-4: #84B179;
+  --color-green-1: #ABDC59;
+  --color-green-2: #ABDC59;
+  --color-green-3: #B3D33E;
+  --color-green-4: #B3D33E;
   --color-green-5: #4AA346;
 
   --color-text-main: #333333;

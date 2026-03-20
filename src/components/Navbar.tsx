@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LogIn } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -47,15 +47,6 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            
-            {/* Admin Login Button */}
-            <Link
-              to="/login"
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--color-green-5)] text-white rounded-full hover:bg-[var(--color-green-4)] transition-all font-semibold"
-            >
-              <LogIn size={18} />
-              <span>Login</span>
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -91,15 +82,6 @@ export default function Navbar() {
               </Link>
             ))}
             
-            {/* Mobile Admin Login Button */}
-            <Link
-              to="/login"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 mx-2 mt-4 px-4 py-3 bg-[var(--color-green-5)] text-white rounded-full hover:bg-[var(--color-green-4)] transition-all font-semibold"
-            >
-              <LogIn size={18} />
-              <span>Admin Login</span>
-            </Link>
           </div>
         </div>
       )}
