@@ -5,11 +5,11 @@ import clsx from 'clsx';
 
 const navLinks = [
   { name: 'Home', path: '/' },
-  { name: 'About', path: '/about' },
+  { name: 'About Us', path: '/about' },
   { name: 'Team', path: '/team' },
   { name: 'Projects', path: '/portfolio' },
   { name: 'Events', path: '/events' },
-  { name: 'Blog', path: '/blog' },
+  { name: 'Homie Center', path: '/blog' },
   { name: 'Volunteer', path: '/volunteer' },
   { name: 'Donate', path: '/donate' },
 ];
