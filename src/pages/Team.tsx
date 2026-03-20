@@ -379,14 +379,8 @@ export default function Team() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="/volunteer"
-              className="bg-white text-[var(--color-green-5)] hover:bg-[var(--color-green-1)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
-            >
-              Become a Volunteer
-            </a>
-            <a
               href="/contact"
-              className="bg-[var(--color-green-4)] hover:bg-[var(--color-green-3)] text-white font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
+              className="bg-white text-[var(--color-green-5)] hover:bg-[var(--color-green-1)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
             >
               Contact Us
             </a>

@@ -17,7 +17,7 @@ const events = [
     description: 'Join us for a two-day community build helping three families construct their homes. All skill levels welcome!',
     image: 'https://picsum.photos/seed/event1/800/500',
     status: 'upcoming',
-    registrationLink: '/volunteer#signup'
+    registrationLink: '/contact'
   },
   {
     id: 2,
@@ -47,7 +47,7 @@ const events = [
     description: 'Full-day summit featuring workshops on community organizing, housing advocacy, and leadership development.',
     image: 'https://picsum.photos/seed/event3/800/500',
     status: 'upcoming',
-    registrationLink: '/volunteer#signup'
+    registrationLink: '/contact'
   },
   {
     id: 4,
@@ -62,7 +62,7 @@ const events = [
     description: 'Annual charity gala featuring dinner, live entertainment, and silent auction to raise funds for our builds.',
     image: 'https://picsum.photos/seed/event4/800/500',
     status: 'upcoming',
-    registrationLink: '/donate'
+    registrationLink: '/contact'
   },
   {
     id: 5,
@@ -77,7 +77,7 @@ const events = [
     description: 'Three-day intensive build project. Perfect for volunteers seeking deep immersion and team bonding.',
     image: 'https://picsum.photos/seed/event5/800/500',
     status: 'upcoming',
-    registrationLink: '/volunteer#signup'
+    registrationLink: '/contact'
   },
   {
     id: 6,
@@ -92,7 +92,7 @@ const events = [
     description: 'Mandatory orientation for all new volunteers. Learn about HFHGC, safety protocols, and what to expect.',
     image: 'https://picsum.photos/seed/event6/800/500',
     status: 'upcoming',
-    registrationLink: '/volunteer#signup'
+    registrationLink: '/contact'
   },
   {
     id: 7,
@@ -161,10 +161,10 @@ export default function Events() {
             className="text-center"
           >
             <h1 className="text-5xl lg:text-6xl font-heading font-bold mb-6">
-              Events Calendar
+              Upcoming Projects
             </h1>
             <p className="text-xl text-[var(--color-green-1)] max-w-3xl mx-auto">
-              Stay updated with our upcoming builds, meetings, workshops, and community events. Join us in making a difference!
+              Stay updated with our upcoming builds, meetings, workshops, and community projects. Join us in making a difference!
             </p>
           </motion.div>
         </div>
@@ -193,7 +193,7 @@ export default function Events() {
                   : 'bg-gray-100 text-[var(--color-text-main)] hover:bg-gray-200'
               }`}
             >
-              Past Events ({pastCount})
+              Past Projects ({pastCount})
             </button>
           </div>
 
@@ -223,10 +223,10 @@ export default function Events() {
             <div className="text-center py-20">
               <CalendarIcon className="mx-auto mb-4 text-gray-300" size={64} />
               <h3 className="text-2xl font-heading font-bold text-gray-400 mb-2">
-                No Events Found
+                No Projects Found
               </h3>
               <p className="text-gray-500">
-                Try adjusting your filters or check back later for new events.
+                Try adjusting your filters or check back later for new projects.
               </p>
             </div>
           ) : (

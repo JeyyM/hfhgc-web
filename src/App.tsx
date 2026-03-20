@@ -14,8 +14,6 @@ import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
-import Donate from './pages/Donate';
-import Volunteer from './pages/Volunteer';
 import Events from './pages/Events';
 import Team from './pages/Team';
 import Login from './pages/Login';
@@ -38,8 +36,6 @@ export default function App() {
           <Route path="faq" element={<FAQ />} />
           <Route path="blog" element={<Blog />} />
           <Route path="blog/:id" element={<BlogPost />} />
-          <Route path="donate" element={<Donate />} />
-          <Route path="volunteer" element={<Volunteer />} />
           <Route path="events" element={<Events />} />
         </Route>
         {/* Admin Routes - Outside Layout (no navbar/footer) */}

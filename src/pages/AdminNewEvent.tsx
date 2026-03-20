@@ -27,7 +27,7 @@ export default function AdminNewEvent() {
     description: '',
     requirements: '',
     imageUrl: '',
-    registrationLink: '/volunteer',
+    registrationLink: '/contact',
     status: 'upcoming' as 'upcoming' | 'ongoing' | 'completed'
   });
 
@@ -351,7 +351,7 @@ export default function AdminNewEvent() {
                 value={formData.registrationLink}
                 onChange={(e) => setFormData({ ...formData, registrationLink: e.target.value })}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[var(--color-green-5)] transition-colors"
-                placeholder="/volunteer or external URL"
+                placeholder="/contact or external URL"
               />
             </div>
 

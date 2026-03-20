@@ -184,36 +184,15 @@ export default function Home() {
               className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl scrapbook-border"
             >
               <Users className="mb-4 text-[var(--color-green-1)]" size={48} />
-              <h3 className="text-3xl font-heading font-bold mb-4">Become a Volunteer</h3>
+              <h3 className="text-3xl font-heading font-bold mb-4">Get Involved</h3>
               <p className="text-[var(--color-green-1)] mb-6">
-                Join hundreds of students making a real difference. No experience needed—just bring your enthusiasm!
+                Join hundreds of students making a real difference. Reach out to us to learn how you can help!
               </p>
               <Link 
-                to="/volunteer"
+                to="/contact"
                 className="inline-block bg-white text-[var(--color-green-5)] hover:bg-[var(--color-green-1)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
               >
-                Sign Up Today
-              </Link>
-            </motion.div>
-
-            {/* Donate CTA */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl scrapbook-border"
-            >
-              <Heart className="mb-4 text-[var(--color-green-1)]" size={48} />
-              <h3 className="text-3xl font-heading font-bold mb-4">Support Our Mission</h3>
-              <p className="text-[var(--color-green-1)] mb-6">
-                Every donation helps us build more homes and change more lives. Your generosity makes it possible.
-              </p>
-              <Link 
-                to="/donate"
-                className="inline-block bg-[var(--color-green-2)] text-[var(--color-text-main)] hover:bg-[var(--color-green-1)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
-              >
-                Donate Now
+                Contact Us
               </Link>
             </motion.div>
           </div>

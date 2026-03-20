@@ -8,10 +8,8 @@ const navLinks = [
   { name: 'About Us', path: '/about' },
   { name: 'Team', path: '/team' },
   { name: 'Projects', path: '/portfolio' },
-  { name: 'Events', path: '/events' },
+  { name: 'Upcoming Projects', path: '/events' },
   { name: 'Homie Center', path: '/blog' },
-  { name: 'Volunteer', path: '/volunteer' },
-  { name: 'Donate', path: '/donate' },
 ];
 
 export default function Navbar() {
