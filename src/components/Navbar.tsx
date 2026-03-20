@@ -10,6 +10,7 @@ const navLinks = [
   { name: 'Projects', path: '/portfolio' },
   { name: 'Upcoming Projects', path: '/events' },
   { name: 'Homie Center', path: '/blog' },
+  { name: 'Partnerships', path: '/partnerships' },
 ];
 
 export default function Navbar() {
@@ -22,12 +23,11 @@ export default function Navbar() {
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-              <div className="w-12 h-12 bg-[var(--color-green-5)] rounded-full flex items-center justify-center text-white font-bold text-xl">
-                HFH
-              </div>
-              <span className="font-heading font-bold text-xl text-[var(--color-green-5)] hidden sm:block">
-                Green Chapter
-              </span>
+              <img
+                src="/HFHGC Logo Black Nav.png"
+                alt="HFHGC Logo"
+                className="h-16 w-auto object-contain"
+              />
             </Link>
           </div>
           

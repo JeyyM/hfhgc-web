@@ -8,12 +8,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[var(--color-green-5)] font-bold">
-                HFH
-              </div>
-              <span className="font-heading font-bold text-xl">
-                Green Chapter
-              </span>
+              <img
+                src="/HFHGC Logo White.png"
+                alt="HFHGC Logo"
+                className="h-24 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-[var(--color-green-1)] mb-6">
               De La Salle University Manila<br />
