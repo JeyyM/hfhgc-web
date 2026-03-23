@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-32">
+      <section className="hero-section relative overflow-hidden py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -22,7 +22,7 @@ export default function Home() {
                 Habitat for Humanity Green Chapter in De La Salle University Manila is dedicated to creating sustainable communities and empowering families.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link to="/portfolio" className="bg-[var(--color-green-5)] hover:bg-[#3a8237] text-white font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow">
+                <Link to="/projects" className="bg-[var(--color-green-5)] hover:bg-[#3a8237] text-white font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow">
                   Our Projects
                 </Link>
                 <Link to="/contact" className="bg-[var(--color-green-2)] hover:bg-[var(--color-green-4)] text-[var(--color-text-main)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function Home() {
                   <p className="text-sm text-gray-600 mb-4">
                     A collaborative effort to build sustainable housing for families in need.
                   </p>
-                  <Link to="/portfolio" className="text-[var(--color-green-5)] font-bold flex items-center gap-1 hover:text-[var(--color-green-4)] transition-colors">
+                  <Link to="/projects" className="text-[var(--color-green-5)] font-bold flex items-center gap-1 hover:text-[var(--color-green-4)] transition-colors">
                     Read more <ArrowRight size={16} />
                   </Link>
                 </div>
@@ -205,7 +205,7 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Link to="/portfolio" className="inline-block bg-white text-[var(--color-green-5)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow border-2 border-[var(--color-green-5)]">
+            <Link to="/projects" className="inline-block bg-white text-[var(--color-green-5)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 shadow-[3px_3px_0px_rgba(0,0,0,0.12)] border-2 border-[var(--color-green-5)]">
               View All Projects
             </Link>
           </div>
@@ -236,7 +236,7 @@ export default function Home() {
               </Link>
               <Link
                 to="/about"
-                className="inline-block bg-white text-[var(--color-green-5)] border-2 border-[var(--color-green-5)] font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 text-lg"
+                className="inline-block bg-white text-[var(--color-green-5)] border-2 border-[var(--color-green-5)] font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.12)]"
               >
                 Learn More
               </Link>

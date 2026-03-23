@@ -40,9 +40,8 @@ export default function Footer() {
             <ul className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
               <li><Link to="/about" className="hover:underline">About Us</Link></li>
               <li><Link to="/team" className="hover:underline">Our Team</Link></li>
-              <li><Link to="/portfolio" className="hover:underline">Projects</Link></li>
-              <li><Link to="/events" className="hover:underline">Upcoming Projects</Link></li>
-              <li><Link to="/blog" className="hover:underline">Blog</Link></li>
+              <li><Link to="/projects" className="hover:underline">Projects</Link></li>
+              <li><Link to="/homies-center" className="hover:underline">Homie Center</Link></li>
               <li><Link to="/partnerships" className="hover:underline">Partnerships</Link></li>
               <li><Link to="/contact" className="hover:underline">Contact</Link></li>
               <li><Link to="/faq" className="hover:underline">FAQs</Link></li>

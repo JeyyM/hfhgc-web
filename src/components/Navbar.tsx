@@ -7,9 +7,8 @@ const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'About Us', path: '/about' },
   { name: 'Team', path: '/team' },
-  { name: 'Projects', path: '/portfolio' },
-  { name: 'Upcoming Projects', path: '/events' },
-  { name: 'Homie Center', path: '/blog' },
+  { name: 'Projects', path: '/projects' },
+  { name: 'Homie Center', path: '/homies-center' },
   { name: 'Partnerships', path: '/partnerships' },
 ];
 

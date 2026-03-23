@@ -168,6 +168,33 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Grid pattern only on full-width page sections */
+section.bg-white,
+.hero-section,
+div.page-grid {
+  background-image:
+    linear-gradient(rgba(74, 163, 70, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 163, 70, 0.07) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+  background-color: #ffffff !important;
+}
+
+section.page-grid-plain {
+  background-image:
+    linear-gradient(rgba(74, 163, 70, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 163, 70, 0.07) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+}
+
+/* Cards, buttons, and small elements stay plain solid white */
+.bg-white:not(section),
+a.bg-white,
+button.bg-white {
+  background-image: none !important;
+  background-color: #ffffff !important;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.12);
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }

@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 
 export default function About() {
   return (
-    <div className="bg-[var(--color-bg-main)] min-h-screen py-16">
+    <div className="bg-[var(--color-bg-main)] page-grid min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}

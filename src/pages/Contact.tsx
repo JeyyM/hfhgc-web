@@ -24,11 +24,11 @@ export default function Contact() {
           {/* Contact Info */}
           <div className="space-y-8">
             <div className="bg-white p-8 rounded-2xl scrapbook-border scrapbook-shadow">
-              <h2 className="text-2xl font-heading font-bold text-[var(--color-green-4)] mb-6">Get in Touch</h2>
+              <h2 className="text-2xl font-heading font-bold text-[var(--color-green-5)] mb-6">Get in Touch</h2>
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="bg-[var(--color-green-1)] p-3 rounded-full text-[var(--color-green-5)]">
+                  <div className="bg-[var(--color-green-5)] p-3 rounded-full text-white">
                     <MapPin size={24} />
                   </div>
                   <div>
@@ -38,7 +38,7 @@ export default function Contact() {
                 </div>
                 
                 <div className="flex items-start gap-4">
-                  <div className="bg-[var(--color-green-2)] p-3 rounded-full text-[var(--color-green-4)]">
+                  <div className="bg-[var(--color-green-5)] p-3 rounded-full text-white">
                     <Mail size={24} />
                   </div>
                   <div>
@@ -48,7 +48,7 @@ export default function Contact() {
                 </div>
                 
                 <div className="flex items-start gap-4">
-                  <div className="bg-[var(--color-green-3)] p-3 rounded-full text-white">
+                  <div className="bg-[var(--color-green-5)] p-3 rounded-full text-white">
                     <Phone size={24} />
                   </div>
                   <div>

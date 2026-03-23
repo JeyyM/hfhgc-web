@@ -225,7 +225,7 @@ export default function Team() {
       </section>
 
       {/* Committee Heads */}
-      <section className="py-16">
+      <section className="py-16 page-grid-plain bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">
