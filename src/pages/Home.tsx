@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Heart, Home as HomeIcon, Users } from 'lucide-react';
+import { ArrowRight, Heart, Home as HomeIcon, Users, Mail, MapPin } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -61,39 +61,39 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div 
               whileHover={{ y: -10 }}
-              className="bg-[var(--color-bg-main)] p-8 rounded-2xl scrapbook-border scrapbook-shadow"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
             >
-              <div className="w-14 h-14 bg-[var(--color-green-1)] rounded-full flex items-center justify-center mb-6">
-                <HomeIcon className="text-[var(--color-green-5)]" size={28} />
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                <HomeIcon className="text-white" size={28} />
               </div>
-              <h3 className="text-2xl font-heading font-bold text-[var(--color-green-5)] mb-4">Our Vision</h3>
-              <p className="text-[var(--color-text-main)]">
+              <h3 className="text-2xl font-heading font-bold text-white mb-4">Our Vision</h3>
+              <p className="text-white/90">
                 A world where everyone has a decent place to live. We envision communities where families thrive in safe, affordable homes.
               </p>
             </motion.div>
 
             <motion.div 
               whileHover={{ y: -10 }}
-              className="bg-[var(--color-bg-main)] p-8 rounded-2xl scrapbook-border scrapbook-shadow"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
             >
-              <div className="w-14 h-14 bg-[var(--color-green-2)] rounded-full flex items-center justify-center mb-6">
-                <Heart className="text-[var(--color-green-4)]" size={28} />
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                <Heart className="text-white" size={28} />
               </div>
-              <h3 className="text-2xl font-heading font-bold text-[var(--color-green-4)] mb-4">Our Mission</h3>
-              <p className="text-[var(--color-text-main)]">
+              <h3 className="text-2xl font-heading font-bold text-white mb-4">Our Mission</h3>
+              <p className="text-white/90">
                 Seeking to put God&apos;s love into action, Habitat for Humanity brings people together to build homes, communities and hope.
               </p>
             </motion.div>
 
             <motion.div 
               whileHover={{ y: -10 }}
-              className="bg-[var(--color-bg-main)] p-8 rounded-2xl scrapbook-border scrapbook-shadow"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
             >
-              <div className="w-14 h-14 bg-[var(--color-green-3)] rounded-full flex items-center justify-center mb-6">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-6">
                 <Users className="text-white" size={28} />
               </div>
-              <h3 className="text-2xl font-heading font-bold text-[var(--color-green-3)] mb-4">Our Community</h3>
-              <p className="text-[var(--color-text-main)]">
+              <h3 className="text-2xl font-heading font-bold text-white mb-4">Our Community</h3>
+              <p className="text-white/90">
                 Driven by passionate DLSU students, we are a family of volunteers dedicated to making a tangible difference in society.
               </p>
             </motion.div>
@@ -117,13 +117,13 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="bg-[var(--color-green-1)] p-8 rounded-2xl scrapbook-border text-center"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow text-center"
             >
-              <div className="w-16 h-16 bg-[var(--color-green-5)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <HomeIcon className="text-white" size={32} />
               </div>
-              <p className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-2">50+</p>
-              <p className="text-[var(--color-text-main)] font-semibold">Homes Built</p>
+              <p className="text-5xl font-heading font-bold text-white mb-2">50+</p>
+              <p className="text-white/90 font-semibold">Homes Built</p>
             </motion.div>
             
             <motion.div
@@ -131,13 +131,13 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
-              className="bg-[var(--color-green-1)] p-8 rounded-2xl scrapbook-border text-center"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow text-center"
             >
-              <div className="w-16 h-16 bg-[var(--color-green-4)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="text-white" size={32} />
               </div>
-              <p className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-2">200+</p>
-              <p className="text-[var(--color-text-main)] font-semibold">Families Helped</p>
+              <p className="text-5xl font-heading font-bold text-white mb-2">200+</p>
+              <p className="text-white/90 font-semibold">Families Helped</p>
             </motion.div>
             
             <motion.div
@@ -145,13 +145,13 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
-              className="bg-[var(--color-green-1)] p-8 rounded-2xl scrapbook-border text-center"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow text-center"
             >
-              <div className="w-16 h-16 bg-[var(--color-green-3)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Heart className="text-white" size={32} />
               </div>
-              <p className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-2">1,500+</p>
-              <p className="text-[var(--color-text-main)] font-semibold">Volunteers</p>
+              <p className="text-5xl font-heading font-bold text-white mb-2">1,500+</p>
+              <p className="text-white/90 font-semibold">Volunteers</p>
             </motion.div>
             
             <motion.div
@@ -159,41 +159,13 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
-              className="bg-[var(--color-green-1)] p-8 rounded-2xl scrapbook-border text-center"
+              className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow text-center"
             >
-              <div className="w-16 h-16 bg-[var(--color-green-2)] rounded-full flex items-center justify-center mx-auto mb-4">
-                <HomeIcon className="text-[var(--color-green-5)]" size={32} />
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <HomeIcon className="text-white" size={32} />
               </div>
-              <p className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-2">10K+</p>
-              <p className="text-[var(--color-text-main)] font-semibold">Volunteer Hours</p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Sections */}
-      <section className="py-20 bg-[var(--color-green-5)] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Volunteer CTA */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl scrapbook-border"
-            >
-              <Users className="mb-4 text-[var(--color-green-1)]" size={48} />
-              <h3 className="text-3xl font-heading font-bold mb-4">Get Involved</h3>
-              <p className="text-[var(--color-green-1)] mb-6">
-                Join hundreds of students making a real difference. Reach out to us to learn how you can help!
-              </p>
-              <Link 
-                to="/contact"
-                className="inline-block bg-white text-[var(--color-green-5)] hover:bg-[var(--color-green-1)] font-bold py-3 px-8 rounded-full transition-transform hover:scale-105 scrapbook-shadow"
-              >
-                Contact Us
-              </Link>
+              <p className="text-5xl font-heading font-bold text-white mb-2">10K+</p>
+              <p className="text-white/90 font-semibold">Volunteer Hours</p>
             </motion.div>
           </div>
         </div>
@@ -237,6 +209,90 @@ export default function Home() {
               View All Projects
             </Link>
           </div>
+        </div>
+        </section>
+
+      {/* Contact Us Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-6">
+              Get In Touch
+            </h2>
+            <p className="text-xl text-[var(--color-text-main)] max-w-2xl mx-auto mb-10">
+              Whether you want to volunteer, partner with us, or just learn more about what we do — we'd love to hear from you. Every conversation is the start of something meaningful.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                to="/contact"
+                className="inline-block bg-[var(--color-green-5)] text-white font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-4)] transition-all hover:scale-105 scrapbook-shadow text-lg"
+              >
+                Contact Us
+              </Link>
+              <Link
+                to="/about"
+                className="inline-block bg-white text-[var(--color-green-5)] border-2 border-[var(--color-green-5)] font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 text-lg"
+              >
+                Learn More
+              </Link>
+            </div>
+
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true }}
+                className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
+              >
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                  <Mail className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-heading font-bold text-white mb-2">Email Us</h3>
+                <p className="text-white/80 text-sm mb-3">We reply within 24 hours on school days.</p>
+                <a href="mailto:hfhgcdlsu@gmail.com" className="text-white font-semibold hover:underline">
+                  hfhgcdlsu@gmail.com
+                </a>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
+              >
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                  <MapPin className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-heading font-bold text-white mb-2">Find Us</h3>
+                <p className="text-white/80 text-sm mb-3">Based at the heart of Manila's premier university.</p>
+                <p className="text-white font-semibold">De La Salle University, Taft Ave, Manila</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow"
+              >
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                  <Users className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-heading font-bold text-white mb-2">Follow Us</h3>
+                <p className="text-white/80 text-sm mb-3">Stay updated on our latest builds and events.</p>
+                <a href="https://facebook.com/hfhgcdlsu" target="_blank" rel="noreferrer" className="text-white font-semibold hover:underline">
+                  @hfhgcdlsu
+                </a>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>
