@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('admin@hfhgc.org');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('xXGoodPassword_123&&Xx');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -202,7 +202,7 @@ export default function Login() {
             </p>
             <p className="text-xs text-gray-600">
               Email: <span className="font-mono">admin@hfhgc.org</span><br />
-              Password: <span className="font-mono">admin123</span>
+              Password: <span className="font-mono">xXGoodPassword_123&&Xx</span>
             </p>
           </div>
         </motion.div>
