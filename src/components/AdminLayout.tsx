@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
   Home,
@@ -32,19 +33,47 @@ export default function AdminLayout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminEmail, setAdminEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('hfhgc_admin_token');
-    const email = localStorage.getItem('hfhgc_admin_email');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    if (email) setAdminEmail(email);
+    checkAuth();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('hfhgc_admin_token');
+  const checkAuth = async () => {
+    try {
+      // Check for active Supabase session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        navigate('/login');
+        return;
+      }
+
+      // Verify admin privileges
+      const { data: adminProfile, error: adminError } = await supabase
+        .from('admin_profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (adminError || !adminProfile) {
+        await supabase.auth.signOut();
+        navigate('/login');
+        return;
+      }
+
+      // Set admin email
+      setAdminEmail(session.user.email || '');
+    } catch (err) {
+      console.error('Auth check error:', err);
+      navigate('/login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('hfhgc_admin_email');
     navigate('/login');
   };
@@ -53,6 +82,18 @@ export default function AdminLayout() {
     if (path === '/admin') return location.pathname === '/admin';
     return location.pathname.startsWith(path);
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-green-5)] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
