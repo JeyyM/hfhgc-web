@@ -7,10 +7,12 @@
  * useSettings()                    → { settings, loading, update, refetch }
  *
  * All hooks talk directly to the public Supabase client.
+ * Now includes caching support for better performance.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { ContentCache } from '../lib/cache';
 
 /* ─── Generic Fetch ─── */
 interface FetchOptions {
@@ -18,6 +20,8 @@ interface FetchOptions {
   filter?: Record<string, any>;
   eq?: [string, any][];
   single?: boolean;
+  cache?: boolean; // Enable caching
+  cacheTTL?: number; // Cache time-to-live in milliseconds
 }
 
 export function useFetch<T = any>(table: string, options?: FetchOptions) {
@@ -25,9 +29,29 @@ export function useFetch<T = any>(table: string, options?: FetchOptions) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = useCallback(async () => {
+  // Generate cache key based on table and options
+  const getCacheKey = () => {
+    const optionsStr = options ? JSON.stringify(options) : '';
+    return `${table}_${optionsStr}`;
+  };
+
+  const refetch = useCallback(async (skipCache = false) => {
     setLoading(true);
     setError(null);
+    
+    const cacheKey = getCacheKey();
+    const shouldUseCache = options?.cache !== false && !skipCache;
+
+    // Try to get from cache first
+    if (shouldUseCache) {
+      const cached = ContentCache.get<T[]>(cacheKey, options?.cacheTTL);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       let query = supabase.from(table).select('*');
 
@@ -44,11 +68,15 @@ export function useFetch<T = any>(table: string, options?: FetchOptions) {
       if (options?.single) {
         const { data: row, error: err } = await query.single();
         if (err) throw err;
-        setData(row ? [row as T] : []);
+        const result = row ? [row as T] : [];
+        setData(result);
+        if (shouldUseCache) ContentCache.set(cacheKey, result);
       } else {
         const { data: rows, error: err } = await query;
         if (err) throw err;
-        setData((rows ?? []) as T[]);
+        const result = (rows ?? []) as T[];
+        setData(result);
+        if (shouldUseCache) ContentCache.set(cacheKey, result);
       }
     } catch (e: any) {
       setError(e.message || 'Failed to fetch data');
@@ -60,31 +88,57 @@ export function useFetch<T = any>(table: string, options?: FetchOptions) {
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  return { data, loading, error, refetch };
+  // Return refetch with option to skip cache
+  return { 
+    data, 
+    loading, 
+    error, 
+    refetch: (skipCache = false) => refetch(skipCache) 
+  };
 }
 
 /* ─── Single-row fetch (about_page, home_hero) ─── */
-export function useFetchSingle<T = any>(table: string) {
+export function useFetchSingle<T = any>(table: string, cacheTTL?: number) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(async (skipCache = false) => {
     setLoading(true);
     setError(null);
+
+    const cacheKey = `${table}_single`;
+
+    // Try cache first
+    if (!skipCache && cacheTTL) {
+      const cached = ContentCache.get<T>(cacheKey, cacheTTL);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const { data: rows, error: err } = await supabase.from(table).select('*').limit(1);
       if (err) throw err;
-      setData(rows && rows.length > 0 ? (rows[0] as T) : null);
+      const result = rows && rows.length > 0 ? (rows[0] as T) : null;
+      setData(result);
+      if (cacheTTL && result) ContentCache.set(cacheKey, result);
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [table]);
+  }, [table, cacheTTL]);
 
   useEffect(() => { refetch(); }, [refetch]);
-  return { data, loading, error, refetch };
+  return { 
+    data, 
+    loading, 
+    error, 
+    refetch: (skipCache = false) => refetch(skipCache) 
+  };
 }
 
 /* ─── Generic Upsert ─── */
@@ -102,6 +156,17 @@ export function useUpsert<T = any>(table: string) {
         .select()
         .single();
       if (err) throw err;
+      
+      // Invalidate cache for this table
+      ContentCache.remove(`${table}_single`);
+      // Also clear any list caches for this table
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(`cache_${table}_`)) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -130,6 +195,15 @@ export function useInsert<T = any>(table: string) {
         .select()
         .single();
       if (err) throw err;
+      
+      // Invalidate cache for this table
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(`cache_${table}_`)) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -159,6 +233,15 @@ export function useUpdate<T = any>(table: string) {
         .select()
         .single();
       if (err) throw err;
+      
+      // Invalidate cache for this table
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(`cache_${table}_`)) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -183,6 +266,15 @@ export function useDelete(table: string) {
     try {
       const { error: err } = await supabase.from(table).delete().eq('id', id);
       if (err) throw err;
+      
+      // Invalidate cache for this table
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(`cache_${table}_`)) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       return true;
     } catch (e: any) {
       setError(e.message);

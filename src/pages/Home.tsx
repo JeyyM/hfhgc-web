@@ -9,9 +9,18 @@ import { LoadingSpinner } from '../components/StatusIndicators';
 const iconMap: Record<string, any> = { Home: HomeIcon, Heart, Users, Clock, Mail, MapPin };
 
 export default function Home() {
-  const { data: hero, loading: hL } = useFetchSingle<any>('home_hero');
-  const { data: cards, loading: cL } = useFetch<any>('home_cards', { order: { column: 'sort_order' } });
-  const { data: stats, loading: sL } = useFetch<any>('impact_stats', { order: { column: 'sort_order' } });
+  // Enable caching with 15-minute TTL for all content
+  const { data: hero, loading: hL } = useFetchSingle<any>('home_hero', 15 * 60 * 1000);
+  const { data: cards, loading: cL } = useFetch<any>('home_cards', { 
+    order: { column: 'sort_order' },
+    cache: true,
+    cacheTTL: 15 * 60 * 1000
+  });
+  const { data: stats, loading: sL } = useFetch<any>('impact_stats', { 
+    order: { column: 'sort_order' },
+    cache: true,
+    cacheTTL: 15 * 60 * 1000
+  });
   const { settings } = useSettings();
 
   if (hL || cL || sL) return <LoadingSpinner />;
