@@ -21,7 +21,7 @@ export default function Login() {
       localStorage.setItem('hfhgc_admin_email', email);
       
       setIsLoading(false);
-      navigate('/admin/content');
+      navigate('/admin');
     }, 1000);
   };
 

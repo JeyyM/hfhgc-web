@@ -5,9 +5,9 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import About from './pages/About';
-import Portfolio from './pages/Portfolio';
 import Projects from './pages/Projects';
 import Partnerships from './pages/Partnerships';
 import HomiesCenter from './pages/HomiesCenter';
@@ -17,19 +17,25 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Team from './pages/Team';
 import Login from './pages/Login';
-import AdminContent from './pages/AdminContent';
-import AdminNewActivity from './pages/AdminNewActivity';
-import AdminNewEvent from './pages/AdminNewEvent';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminSettings from './pages/AdminSettings';
+import AdminEditHome from './pages/AdminEditHome';
+import AdminEditAbout from './pages/AdminEditAbout';
+import AdminEditTeam from './pages/AdminEditTeam';
+import AdminEditBlog from './pages/AdminEditBlog';
+import AdminEditProjects from './pages/AdminEditProjects';
+import AdminEditPartnerships from './pages/AdminEditPartnerships';
+import AdminEditHomieCenter from './pages/AdminEditHomieCenter';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public site */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="team" element={<Team />} />
-          <Route path="portfolio" element={<Portfolio />} />
           <Route path="projects" element={<Projects />} />
           <Route path="partnerships" element={<Partnerships />} />
           <Route path="homies-center" element={<HomiesCenter />} />
@@ -38,11 +44,22 @@ export default function App() {
           <Route path="blog" element={<Blog />} />
           <Route path="blog/:id" element={<BlogPost />} />
         </Route>
-        {/* Admin Routes - Outside Layout (no navbar/footer) */}
+
+        {/* Auth */}
         <Route path="login" element={<Login />} />
-        <Route path="admin/content" element={<AdminContent />} />
-        <Route path="admin/activities/new" element={<AdminNewActivity />} />
-        <Route path="admin/events/new" element={<AdminNewEvent />} />
+
+        {/* Admin panel (sidebar layout) */}
+        <Route path="admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="home" element={<AdminEditHome />} />
+          <Route path="about" element={<AdminEditAbout />} />
+          <Route path="team" element={<AdminEditTeam />} />
+          <Route path="blog" element={<AdminEditBlog />} />
+          <Route path="projects" element={<AdminEditProjects />} />
+          <Route path="partnerships" element={<AdminEditPartnerships />} />
+          <Route path="homie-center" element={<AdminEditHomieCenter />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

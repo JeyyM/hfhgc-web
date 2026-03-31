@@ -98,7 +98,7 @@ export default function AdminNewActivity() {
     // Simulate save delay
     setTimeout(() => {
       alert(`Project ${formData.status === 'published' ? 'published' : 'saved as draft'} successfully!`);
-      navigate('/admin/content');
+      navigate('/admin/blog');
     }, 500);
   };
 
@@ -129,7 +129,7 @@ export default function AdminNewActivity() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                to="/admin/content"
+                to="/admin/blog"
                 className="p-2 hover:bg-[var(--color-green-1)] rounded-lg transition-colors"
               >
                 <ArrowLeft size={24} />
@@ -457,7 +457,7 @@ export default function AdminNewActivity() {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-6 border-t-2 border-gray-200">
               <Link
-                to="/admin/content"
+                to="/admin/blog"
                 className="px-6 py-3 text-gray-600 hover:text-[var(--color-text-main)] transition-colors"
               >
                 Cancel

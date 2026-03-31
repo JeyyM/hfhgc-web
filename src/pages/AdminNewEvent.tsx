@@ -48,7 +48,7 @@ export default function AdminNewEvent() {
     // Simulate save delay
     setTimeout(() => {
       alert('Event created successfully!');
-      navigate('/admin/content');
+      navigate('/admin/projects');
     }, 500);
   };
 
@@ -80,7 +80,7 @@ export default function AdminNewEvent() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                to="/admin/content"
+                to="/admin/projects"
                 className="p-2 hover:bg-[var(--color-green-1)] rounded-lg transition-colors"
               >
                 <ArrowLeft size={24} />
@@ -358,7 +358,7 @@ export default function AdminNewEvent() {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-6 border-t-2 border-gray-200">
               <Link
-                to="/admin/content"
+                to="/admin/projects"
                 className="px-6 py-3 text-gray-600 hover:text-[var(--color-text-main)] transition-colors"
               >
                 Cancel
