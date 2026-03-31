@@ -1,11 +1,93 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { Plus, Pencil, Trash2, Save, X, GripVertical, ChevronDown, ChevronUp, ImageIcon } from 'lucide-react';
+import { 
+  Plus, Pencil, Trash2, Save, X, GripVertical, ChevronDown, ChevronUp, ImageIcon,
+  // Common icons for picker
+  Home, Heart, Users, Building, Handshake, Globe, Mail, Phone, MapPin, Calendar,
+  Clock, Star, Award, TrendingUp, DollarSign, Target, CheckCircle, AlertCircle,
+  Info, HelpCircle, Shield, Lock, Key, Settings, Wrench, Hammer, Package,
+  ShoppingCart, ShoppingBag, Tag, Gift, Sparkles, Zap, Flame, Sun, Moon, Cloud,
+  Umbrella, Droplet, Wind, Leaf, TreeDeciduous, Flower2, Coffee, Camera, Music,
+  Video, Image, FileText, BookOpen, GraduationCap, Lightbulb, Rocket, Flag,
+  ThumbsUp, MessageCircle, Send, Bell, Eye, Search, Filter, Download, Upload,
+  Share2, Link2, Bookmark, Archive, Folder, File, PenTool, Palette, Clipboard,
+  Activity, BarChart, PieChart, TrendingDown, Percent, Calculator, CreditCard,
+  Banknote, Wallet, Receipt, ShoppingBasket, Store, Truck, Box, Briefcase,
+  UserCheck, UserPlus, Users2, Contact, Baby, Smile, Frown, Meh, PartyPopper,
+  Cake, IceCream, Pizza, Soup, Salad, Apple, Cherry, Grape, Carrot, Egg,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import ImageGalleryModal from './ImageGallery';
+
+/* ─── Lucide Icons Map for Icon Picker ─── */
+const LUCIDE_ICONS: Record<string, LucideIcon> = {
+  // People & Community
+  'Users': Users, 'Users2': Users2, 'UserCheck': UserCheck, 'UserPlus': UserPlus, 
+  'Contact': Contact, 'Baby': Baby, 'Smile': Smile, 'Heart': Heart,
+  
+  // Buildings & Places
+  'Home': Home, 'Building': Building, 'Store': Store, 'Globe': Globe, 'MapPin': MapPin,
+  
+  // Communication
+  'Mail': Mail, 'Phone': Phone, 'MessageCircle': MessageCircle, 'Send': Send, 'Bell': Bell,
+  
+  // Business & Finance
+  'Briefcase': Briefcase, 'Handshake': Handshake, 'DollarSign': DollarSign, 'TrendingUp': TrendingUp,
+  'TrendingDown': TrendingDown, 'Target': Target, 'BarChart': BarChart, 'PieChart': PieChart,
+  'Calculator': Calculator, 'CreditCard': CreditCard, 'Banknote': Banknote, 'Wallet': Wallet,
+  'Receipt': Receipt, 'Percent': Percent,
+  
+  // Time & Events
+  'Calendar': Calendar, 'Clock': Clock, 'PartyPopper': PartyPopper, 'Cake': Cake,
+  
+  // Recognition & Achievement
+  'Star': Star, 'Award': Award, 'Flag': Flag, 'ThumbsUp': ThumbsUp, 'Sparkles': Sparkles,
+  'CheckCircle': CheckCircle,
+  
+  // Tools & Work
+  'Wrench': Wrench, 'Hammer': Hammer, 'Settings': Settings, 'PenTool': PenTool,
+  
+  // Shopping & Products
+  'ShoppingCart': ShoppingCart, 'ShoppingBag': ShoppingBag, 'ShoppingBasket': ShoppingBasket,
+  'Package': Package, 'Box': Box, 'Tag': Tag, 'Gift': Gift,
+  
+  // Security & Info
+  'Shield': Shield, 'Lock': Lock, 'Key': Key, 'Info': Info, 'HelpCircle': HelpCircle,
+  'AlertCircle': AlertCircle, 'Eye': Eye,
+  
+  // Nature & Weather
+  'Leaf': Leaf, 'TreeDeciduous': TreeDeciduous, 'Flower2': Flower2, 'Sun': Sun, 'Moon': Moon,
+  'Cloud': Cloud, 'Umbrella': Umbrella, 'Droplet': Droplet, 'Wind': Wind,
+  
+  // Food & Drink
+  'Coffee': Coffee, 'IceCream': IceCream, 'Pizza': Pizza, 'Soup': Soup, 'Salad': Salad,
+  'Apple': Apple, 'Cherry': Cherry, 'Grape': Grape, 'Carrot': Carrot, 'Egg': Egg,
+  
+  // Media & Creative
+  'Camera': Camera, 'Music': Music, 'Video': Video, 'Image': Image, 'Palette': Palette,
+  
+  // Education & Learning
+  'BookOpen': BookOpen, 'GraduationCap': GraduationCap, 'Lightbulb': Lightbulb, 'FileText': FileText,
+  
+  // Actions
+  'Rocket': Rocket, 'Zap': Zap, 'Flame': Flame, 'Search': Search, 'Filter': Filter,
+  'Download': Download, 'Upload': Upload, 'Share2': Share2, 'Link2': Link2,
+  'Bookmark': Bookmark, 'Archive': Archive, 'Clipboard': Clipboard,
+  
+  // Files & Folders
+  'Folder': Folder, 'File': File,
+  
+  // Logistics
+  'Truck': Truck, 'Activity': Activity,
+};
+
+const ICON_NAMES = Object.keys(LUCIDE_ICONS);
+const ICONS_PER_PAGE = 30;
 
 /* ─── Shared Types ─── */
 export interface FieldDef {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'select' | 'number' | 'date' | 'url' | 'email' | 'toggle' | 'image' | 'richtext' | 'tags';
+  type?: 'text' | 'textarea' | 'select' | 'number' | 'date' | 'url' | 'email' | 'toggle' | 'image' | 'richtext' | 'tags' | 'icon' | 'gallery';
   options?: string[];
   placeholder?: string;
   required?: boolean;
@@ -54,13 +136,213 @@ export function SectionCard({ title, description, children, actions }: {
   );
 }
 
+/* ─── Icon Picker Modal ─── */
+function IconPickerModal({ 
+  isOpen, 
+  onClose, 
+  selectedIcon, 
+  onSelect 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  selectedIcon: string; 
+  onSelect: (icon: string) => void;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery('');
+      setCurrentPage(0);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const filteredIcons = ICON_NAMES.filter(icon => 
+    icon.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredIcons.length / ICONS_PER_PAGE);
+  const currentIcons = filteredIcons.slice(
+    currentPage * ICONS_PER_PAGE,
+    (currentPage + 1) * ICONS_PER_PAGE
+  );
+
+  const handleIconSelect = (icon: string) => {
+    onSelect(icon);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-gray-900">Choose an Icon</h3>
+            <button 
+              onClick={onClose}
+              className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(0);
+            }}
+            placeholder="Search icons..."
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-5 gap-2">
+            {currentIcons.map((iconName) => {
+              const IconComponent = LUCIDE_ICONS[iconName];
+              return (
+                <button
+                  key={iconName}
+                  onClick={() => handleIconSelect(iconName)}
+                  className={`aspect-square rounded-lg border-2 p-1.5 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${
+                    selectedIcon === iconName 
+                      ? 'border-[var(--color-green-5)] bg-[var(--color-green-1)] text-[var(--color-green-5)]' 
+                      : 'border-gray-200 bg-white hover:border-[var(--color-green-3)] text-gray-600'
+                  }`}
+                  title={iconName}
+                >
+                  <IconComponent size={18} />
+                  <span className="text-[9px] text-center truncate w-full leading-tight mt-0.5">{iconName}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="p-6 border-t border-gray-200 flex items-center justify-between">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-all flex items-center gap-2"
+            >
+              <ChevronDown className="rotate-90" size={16} />
+              Previous
+            </button>
+            <span className="text-sm text-gray-600 font-medium">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage === totalPages - 1}
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-all flex items-center gap-2"
+            >
+              Next
+              <ChevronDown className="-rotate-90" size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Generic Form Field ─── */
 export function FormField({ field, value, onChange }: {
   field: FieldDef;
   value: any;
   onChange: (key: string, val: any) => void;
 }) {
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
   const base = 'w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent transition-colors';
+
+  // Auto-detect icon fields based on key name
+  const isIconField = field.key === 'icon_name' || field.type === 'icon';
+  
+  // Auto-detect image URL fields
+  const isImageUrlField = (field.key.includes('image') || field.key.includes('photo')) && (field.type === 'url' || field.type === 'gallery' || !field.type);
+
+  if (isIconField) {
+    const IconComponent = LUCIDE_ICONS[value] || Home;
+    return (
+      <>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}{field.required && ' *'}</label>
+          <button 
+            type="button"
+            onClick={() => setShowIconPicker(true)}
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-sm flex items-center gap-3 hover:bg-white hover:border-[var(--color-green-5)] focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[var(--color-green-1)] flex items-center justify-center flex-shrink-0">
+              <IconComponent size={20} className="text-[var(--color-green-5)]" />
+            </div>
+            <span className="text-gray-900 font-medium flex-1 text-left">{value || 'Home'}</span>
+            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+          </button>
+        </div>
+        <IconPickerModal 
+          isOpen={showIconPicker}
+          onClose={() => setShowIconPicker(false)}
+          selectedIcon={value || 'Home'}
+          onSelect={(icon) => onChange(field.key, icon)}
+        />
+      </>
+    );
+  }
+
+  // Image URL field with gallery picker
+  if (isImageUrlField) {
+    return (
+      <>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}{field.required && ' *'}</label>
+          <button
+            type="button"
+            onClick={() => setShowImageGallery(true)}
+            className="px-4 py-2.5 bg-[var(--color-green-5)] text-white rounded-lg hover:bg-[var(--color-green-4)] transition-colors flex items-center gap-2 flex-shrink-0"
+            title="Browse image gallery"
+          >
+            <ImageIcon size={18} />
+            <span className="hidden sm:inline">Gallery</span>
+          </button>
+          {value && (
+            <div className="mt-2">
+              <img src={value} alt="Preview" className="h-32 w-auto rounded-lg object-cover border-2 border-gray-200" />
+            </div>
+          )}
+        </div>
+        <ImageGalleryModal
+          isOpen={showImageGallery}
+          onClose={() => setShowImageGallery(false)}
+          currentImageUrl={value}
+          onSelectImage={(url) => {
+            onChange(field.key, url);
+          }}
+        />
+      </>
+    );
+  }
+
+  // Image Caption field
+  if (field.key.includes('caption')) {
+    return (
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}{field.required && ' *'}</label>
+        <input
+          type="text"
+          value={value ?? ''}
+          onChange={e => onChange(field.key, e.target.value)}
+          placeholder={field.placeholder || 'Enter caption here'}
+          className={base}
+        />
+      </div>
+    );
+  }
 
   if (field.type === 'textarea') {
     return (

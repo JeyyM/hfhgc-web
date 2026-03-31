@@ -13,8 +13,6 @@ import Partnerships from './pages/Partnerships';
 import HomiesCenter from './pages/HomiesCenter';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
 import Team from './pages/Team';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
@@ -22,7 +20,6 @@ import AdminSettings from './pages/AdminSettings';
 import AdminEditHome from './pages/AdminEditHome';
 import AdminEditAbout from './pages/AdminEditAbout';
 import AdminEditTeam from './pages/AdminEditTeam';
-import AdminEditBlog from './pages/AdminEditBlog';
 import AdminEditProjects from './pages/AdminEditProjects';
 import AdminEditPartnerships from './pages/AdminEditPartnerships';
 import AdminEditHomieCenter from './pages/AdminEditHomieCenter';
@@ -41,8 +38,6 @@ export default function App() {
           <Route path="homies-center" element={<HomiesCenter />} />
           <Route path="contact" element={<Contact />} />
           <Route path="faq" element={<FAQ />} />
-          <Route path="blog" element={<Blog />} />
-          <Route path="blog/:id" element={<BlogPost />} />
         </Route>
 
         {/* Auth */}
@@ -55,7 +50,6 @@ export default function App() {
           <Route path="home" element={<AdminEditHome />} />
           <Route path="about" element={<AdminEditAbout />} />
           <Route path="team" element={<AdminEditTeam />} />
-          <Route path="blog" element={<AdminEditBlog />} />
           <Route path="projects" element={<AdminEditProjects />} />
           <Route path="partnerships" element={<AdminEditPartnerships />} />
           <Route path="homie-center" element={<AdminEditHomieCenter />} />

@@ -97,19 +97,19 @@ export default function Home() {
               <Link to="/about" className="inline-block bg-white text-[var(--color-green-5)] border-2 border-[var(--color-green-5)] font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.12)]">Learn More</Link>
             </div>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-10 rounded-2xl scrapbook-shadow">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><Mail className="text-white" size={24} /></div>
                 <h3 className="text-xl font-heading font-bold text-white mb-2">Email Us</h3>
                 <p className="text-white/80 text-sm mb-3">We reply within 24 hours on school days.</p>
                 <a href={'mailto:' + (settings.org_email || '')} className="text-white font-semibold hover:underline">{settings.org_email || 'hfhgc@dlsu.edu.ph'}</a>
               </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-10 rounded-2xl scrapbook-shadow">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><MapPin className="text-white" size={24} /></div>
                 <h3 className="text-xl font-heading font-bold text-white mb-2">Find Us</h3>
                 <p className="text-white/80 text-sm mb-3">Based at the heart of Manila's premier university.</p>
                 <p className="text-white font-semibold">{settings.org_address || 'De La Salle University, Taft Ave, Manila'}</p>
               </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-8 rounded-2xl scrapbook-shadow">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-10 rounded-2xl scrapbook-shadow">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><Users className="text-white" size={24} /></div>
                 <h3 className="text-xl font-heading font-bold text-white mb-2">Follow Us</h3>
                 <p className="text-white/80 text-sm mb-3">Stay updated on our latest builds and events.</p>

@@ -204,19 +204,59 @@ export function useSettings() {
   for (const r of rows) settings[r.key] = r.value;
 
   const updateSetting = async (key: string, value: string) => {
-    const { error } = await supabase
-      .from('site_settings')
-      .update({ value })
-      .eq('key', key);
-    if (error) console.error('updateSetting:', error);
-    return !error;
+    try {
+      // First, try to find if the setting exists
+      const { data: existing, error: fetchError } = await supabase
+        .from('site_settings')
+        .select('id')
+        .eq('key', key)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error checking existing setting:', fetchError);
+        return false;
+      }
+
+      if (existing) {
+        // Setting exists, update it
+        const { error: updateError } = await supabase
+          .from('site_settings')
+          .update({ value })
+          .eq('key', key);
+        
+        if (updateError) {
+          console.error('Error updating setting:', updateError);
+          return false;
+        }
+      } else {
+        // Setting doesn't exist, insert it
+        const { error: insertError } = await supabase
+          .from('site_settings')
+          .insert({ key, value });
+        
+        if (insertError) {
+          console.error('Error inserting setting:', insertError);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (e) {
+      console.error('updateSetting exception:', e);
+      return false;
+    }
   };
 
   const updateAll = async (pairs: Record<string, string>) => {
-    const promises = Object.entries(pairs).map(([k, v]) => updateSetting(k, v));
-    const results = await Promise.all(promises);
-    await refetch();
-    return results.every(Boolean);
+    try {
+      const promises = Object.entries(pairs).map(([k, v]) => updateSetting(k, v));
+      const results = await Promise.all(promises);
+      await refetch();
+      return results.every(Boolean);
+    } catch (e) {
+      console.error('updateAll error:', e);
+      return false;
+    }
   };
 
   return { settings, loading, error, refetch, updateSetting, updateAll };

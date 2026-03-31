@@ -3,7 +3,32 @@
 -- ============================================================================
 -- Run this in the Supabase SQL Editor to create all tables.
 -- Images are stored in Supabase Storage; columns hold the public URL / path.
+-- This schema is RERUNNABLE - it will drop existing tables and recreate them.
 -- ============================================================================
+
+-- Drop all tables first (in reverse dependency order)
+DROP TABLE IF EXISTS contact_submissions CASCADE;
+DROP TABLE IF EXISTS admin_profiles CASCADE;
+DROP TABLE IF EXISTS partner_testimonials CASCADE;
+DROP TABLE IF EXISTS partnership_benefits CASCADE;
+DROP TABLE IF EXISTS partners CASCADE;
+DROP TABLE IF EXISTS faqs CASCADE;
+DROP TABLE IF EXISTS announcements CASCADE;
+DROP TABLE IF EXISTS testimonials CASCADE;
+DROP TABLE IF EXISTS projects CASCADE;
+DROP TABLE IF EXISTS blog_posts CASCADE;
+DROP TABLE IF EXISTS alumni_testimonials CASCADE;
+DROP TABLE IF EXISTS team_members CASCADE;
+DROP TABLE IF EXISTS core_values CASCADE;
+DROP TABLE IF EXISTS about_page CASCADE;
+DROP TABLE IF EXISTS impact_stats CASCADE;
+DROP TABLE IF EXISTS home_cards CASCADE;
+DROP TABLE IF EXISTS home_hero CASCADE;
+DROP TABLE IF EXISTS site_settings CASCADE;
+
+-- Drop functions
+DROP FUNCTION IF EXISTS is_admin() CASCADE;
+DROP FUNCTION IF EXISTS update_updated_at() CASCADE;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -28,7 +53,8 @@ INSERT INTO site_settings (key, value) VALUES
   ('twitter_url',     ''),
   ('linkedin_url',    ''),
   ('tiktok_url',      ''),
-  ('partnerships_email', 'partnerships@hfhgc.org');
+  ('partnerships_email', 'partnerships@hfhgc.org')
+ON CONFLICT (key) DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -53,7 +79,8 @@ CREATE TABLE home_hero (
 );
 
 -- Single-row table — insert default
-INSERT INTO home_hero DEFAULT VALUES;
+INSERT INTO home_hero DEFAULT VALUES
+ON CONFLICT DO NOTHING;
 
 -- 2b. Mission / Vision / Community cards
 CREATE TABLE home_cards (
@@ -68,7 +95,8 @@ CREATE TABLE home_cards (
 INSERT INTO home_cards (title, description, icon_name, sort_order) VALUES
   ('Our Vision',    'A world where everyone has a decent place to live. We envision communities where families thrive in safe, affordable homes.', 'Home', 0),
   ('Our Mission',   'Seeking to put God''s love into action, Habitat for Humanity brings people together to build homes, communities and hope.', 'Heart', 1),
-  ('Our Community', 'Driven by passionate DLSU students, we are a family of volunteers dedicated to making a tangible difference in society.', 'Users', 2);
+  ('Our Community', 'Driven by passionate DLSU students, we are a family of volunteers dedicated to making a tangible difference in society.', 'Users', 2)
+ON CONFLICT DO NOTHING;
 
 -- 2c. Impact stats (number counters)
 CREATE TABLE impact_stats (
@@ -84,7 +112,8 @@ INSERT INTO impact_stats (label, value, icon_name, sort_order) VALUES
   ('Homes Built',      '50+',    'Home',   0),
   ('Families Helped',  '200+',   'Users',  1),
   ('Volunteers',       '1,500+', 'Heart',  2),
-  ('Volunteer Hours',  '10K+',   'Home',   3);
+  ('Volunteer Hours',  '10K+',   'Home',   3)
+ON CONFLICT DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -102,7 +131,8 @@ CREATE TABLE about_page (
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 
-INSERT INTO about_page DEFAULT VALUES;
+INSERT INTO about_page DEFAULT VALUES
+ON CONFLICT DO NOTHING;
 
 -- Core values
 CREATE TABLE core_values (
@@ -117,7 +147,8 @@ INSERT INTO core_values (title, description, sort_order) VALUES
   ('Service',        'Selfless dedication to helping others.', 0),
   ('Community',      'Fostering strong bonds and teamwork.', 1),
   ('Sustainability', 'Creating lasting impact for the future.', 2),
-  ('Empathy',        'Understanding and sharing the feelings of others.', 3);
+  ('Empathy',        'Understanding and sharing the feelings of others.', 3)
+ON CONFLICT DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -259,7 +290,7 @@ CREATE TABLE partners (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name        TEXT NOT NULL,
   description TEXT,
-  tier        TEXT NOT NULL DEFAULT 'Community Partner', -- Gold, Silver, Community, Past
+  is_past     BOOLEAN NOT NULL DEFAULT false,            -- false = Current Partner, true = Past Partner
   image_url   TEXT NOT NULL DEFAULT '',
   website     TEXT,
   since_year  TEXT,                                      -- e.g. '2023'
@@ -278,6 +309,17 @@ CREATE TABLE partner_testimonials (
   sort_order INT NOT NULL DEFAULT 0,
   is_visible BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Partnership benefits (Why Partner With Us section)
+CREATE TABLE partnership_benefits (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  icon_name   TEXT,                                       -- lucide-react icon name (e.g., 'Heart', 'Building', 'Users', 'CheckCircle')
+  sort_order  INT NOT NULL DEFAULT 0,
+  is_visible  BOOLEAN NOT NULL DEFAULT true,
+  updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
 
@@ -317,7 +359,7 @@ CREATE TABLE admin_profiles (
 -- Create a public bucket for all website images
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('website-images', 'website-images', true)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -340,10 +382,52 @@ ALTER TABLE announcements        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faqs                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partners             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partner_testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_benefits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_submissions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles       ENABLE ROW LEVEL SECURITY;
 
 -- ── Public read policies (anonymous + authenticated) ──────────────────────
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Public read" ON site_settings;
+DROP POLICY IF EXISTS "Public read" ON home_hero;
+DROP POLICY IF EXISTS "Public read" ON home_cards;
+DROP POLICY IF EXISTS "Public read" ON impact_stats;
+DROP POLICY IF EXISTS "Public read" ON about_page;
+DROP POLICY IF EXISTS "Public read" ON core_values;
+DROP POLICY IF EXISTS "Public read" ON team_members;
+DROP POLICY IF EXISTS "Public read" ON alumni_testimonials;
+DROP POLICY IF EXISTS "Public read" ON projects;
+DROP POLICY IF EXISTS "Public read" ON blog_posts;
+DROP POLICY IF EXISTS "Public read" ON testimonials;
+DROP POLICY IF EXISTS "Public read" ON announcements;
+DROP POLICY IF EXISTS "Public read" ON faqs;
+DROP POLICY IF EXISTS "Public read" ON partners;
+DROP POLICY IF EXISTS "Public read" ON partner_testimonials;
+DROP POLICY IF EXISTS "Public read" ON partnership_benefits;
+DROP POLICY IF EXISTS "Anyone can submit" ON contact_submissions;
+DROP POLICY IF EXISTS "Admin full access" ON site_settings;
+DROP POLICY IF EXISTS "Admin full access" ON home_hero;
+DROP POLICY IF EXISTS "Admin full access" ON home_cards;
+DROP POLICY IF EXISTS "Admin full access" ON impact_stats;
+DROP POLICY IF EXISTS "Admin full access" ON about_page;
+DROP POLICY IF EXISTS "Admin full access" ON core_values;
+DROP POLICY IF EXISTS "Admin full access" ON team_members;
+DROP POLICY IF EXISTS "Admin full access" ON alumni_testimonials;
+DROP POLICY IF EXISTS "Admin full access" ON projects;
+DROP POLICY IF EXISTS "Admin full access" ON blog_posts;
+DROP POLICY IF EXISTS "Admin full access" ON testimonials;
+DROP POLICY IF EXISTS "Admin full access" ON announcements;
+DROP POLICY IF EXISTS "Admin full access" ON faqs;
+DROP POLICY IF EXISTS "Admin full access" ON partners;
+DROP POLICY IF EXISTS "Admin full access" ON partner_testimonials;
+DROP POLICY IF EXISTS "Admin full access" ON partnership_benefits;
+DROP POLICY IF EXISTS "Admin full access" ON contact_submissions;
+DROP POLICY IF EXISTS "Admin full access" ON admin_profiles;
+DROP POLICY IF EXISTS "Admin upload" ON storage.objects;
+DROP POLICY IF EXISTS "Admin update" ON storage.objects;
+DROP POLICY IF EXISTS "Admin delete" ON storage.objects;
+DROP POLICY IF EXISTS "Public read images" ON storage.objects;
 
 CREATE POLICY "Public read" ON site_settings        FOR SELECT USING (true);
 CREATE POLICY "Public read" ON home_hero            FOR SELECT USING (true);
@@ -360,6 +444,7 @@ CREATE POLICY "Public read" ON announcements        FOR SELECT USING (is_visible
 CREATE POLICY "Public read" ON faqs                 FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON partners             FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON partner_testimonials FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partnership_benefits FOR SELECT USING (is_visible = true);
 
 -- Contact submissions — anyone can INSERT
 CREATE POLICY "Anyone can submit" ON contact_submissions FOR INSERT WITH CHECK (true);
@@ -391,6 +476,7 @@ CREATE POLICY "Admin full access" ON announcements        FOR ALL USING (is_admi
 CREATE POLICY "Admin full access" ON faqs                 FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON partners             FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON partner_testimonials FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partnership_benefits FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON contact_submissions  FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON admin_profiles       FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 
@@ -433,7 +519,7 @@ BEGIN
     'site_settings', 'home_hero', 'home_cards', 'impact_stats',
     'about_page', 'core_values', 'team_members', 'alumni_testimonials',
     'projects', 'blog_posts', 'testimonials', 'announcements', 'faqs',
-    'partners', 'partner_testimonials'
+    'partners', 'partner_testimonials', 'partnership_benefits'
   ] LOOP
     EXECUTE format(
       'CREATE TRIGGER set_updated_at BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION update_updated_at();',

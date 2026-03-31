@@ -1,12 +1,23 @@
 -- ============================================================================
--- HFHGC Website — Populate Database with Content
+-- HFHGC Website — Populate Database with Content (SAFE VERSION)
 -- ============================================================================
+-- This version clears existing data first to avoid duplicate key errors.
 -- Run this AFTER schema.sql has been applied.
--- schema.sql already seeds: site_settings, home_hero, home_cards,
---   impact_stats, about_page, core_values.
--- This file populates the remaining tables (except projects).
--- Images use https://placehold.co for labelled placeholders.
 -- ============================================================================
+
+-- Clear existing data from all tables (in correct order to avoid FK constraints)
+DELETE FROM partner_testimonials;
+DELETE FROM partners;
+DELETE FROM partnership_benefits;
+DELETE FROM faqs;
+DELETE FROM announcements;
+DELETE FROM testimonials;
+DELETE FROM blog_posts;
+DELETE FROM alumni_testimonials;
+DELETE FROM team_members;
+
+-- Delete partnership-specific impact stats (keep the original 4 from schema.sql)
+DELETE FROM impact_stats WHERE sort_order >= 10;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -650,5 +661,5 @@ INSERT INTO impact_stats (label, value, icon_name, sort_order) VALUES
 
 
 -- ============================================================================
--- Done! All tables populated (except projects, as requested).
+-- Done! All tables populated safely.
 -- ============================================================================

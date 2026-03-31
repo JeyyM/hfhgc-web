@@ -9,7 +9,7 @@ const projectFields: FieldDef[] = [
   { key: 'description', label: 'Description', type: 'textarea', rows: 3 },
   { key: 'category', label: 'Category', half: true },
   { key: 'status', label: 'Status', type: 'select', options: ['upcoming', 'completed'], half: true },
-  { key: 'image_url', label: 'Image URL', type: 'url' },
+  { key: 'image_url', label: 'Image', type: 'image' },
   { key: 'date_display', label: 'Date Display', placeholder: 'e.g. June 15, 2025', half: true },
   { key: 'time_display', label: 'Time Display', placeholder: 'e.g. 8:00 AM', half: true },
   { key: 'location', label: 'Location' },

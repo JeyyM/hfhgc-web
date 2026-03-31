@@ -9,8 +9,8 @@ const aboutFields: FieldDef[] = [
   { key: 'header_subtitle', label: 'Header Subtitle', type: 'textarea', rows: 2 },
   { key: 'story_title', label: 'Story Title' },
   { key: 'story_body', label: 'Story Body', type: 'textarea', rows: 6 },
-  { key: 'story_image_url', label: 'Story Image URL', type: 'url' },
-  { key: 'story_image_caption', label: 'Image Caption' },
+  { key: 'story_image_url', label: 'Story Image', type: 'url' },
+  { key: 'story_image_caption', label: 'Image Caption', type: 'text' },
 ];
 
 const valueFields: FieldDef[] = [

@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,20 +10,56 @@ export default function Login() {
   const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
-    // Mock login - in real implementation, this would call an API
-    setTimeout(() => {
-      // Store mock auth token
-      localStorage.setItem('hfhgc_admin_token', 'mock_token_12345');
-      localStorage.setItem('hfhgc_admin_email', email);
-      
+    try {
+      // Sign in with Supabase
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      if (data.user) {
+        // Check if user is an admin
+        const { data: adminProfile, error: adminError } = await supabase
+          .from('admin_profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (adminError) {
+          throw adminError;
+        }
+
+        if (!adminProfile) {
+          // User is not an admin
+          await supabase.auth.signOut();
+          setError('Access denied. This account does not have admin privileges.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Store auth info (optional, Supabase handles session automatically)
+        localStorage.setItem('hfhgc_admin_email', email);
+        
+        // Navigate to admin dashboard
+        navigate('/admin');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to sign in. Please check your credentials.');
+    } finally {
       setIsLoading(false);
-      navigate('/admin');
-    }, 1000);
+    }
   };
 
   return (
@@ -59,6 +96,13 @@ export default function Login() {
           className="bg-white rounded-2xl scrapbook-border scrapbook-shadow p-8"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-700 font-medium">{error}</p>
+              </div>
+            )}
+
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-[var(--color-text-main)] mb-2">

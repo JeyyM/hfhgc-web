@@ -10,8 +10,8 @@ const heroFields: FieldDef[] = [
   { key: 'heading_line2', label: 'Heading Line 2', half: true },
   { key: 'heading_accent2', label: 'Accent Word 2', half: true },
   { key: 'subtext', label: 'Subtext', type: 'textarea', rows: 2 },
-  { key: 'image_url', label: 'Image URL', type: 'url' },
-  { key: 'image_caption', label: 'Image Caption' },
+  { key: 'image_url', label: 'Image', type: 'url' },
+  { key: 'image_caption', label: 'Image Caption', type: 'text' },
   { key: 'cta1_label', label: 'CTA 1 Label', half: true },
   { key: 'cta1_link', label: 'CTA 1 Link', half: true },
   { key: 'cta2_label', label: 'CTA 2 Label', half: true },
@@ -21,14 +21,14 @@ const heroFields: FieldDef[] = [
 const cardFields: FieldDef[] = [
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description', type: 'textarea', rows: 2 },
-  { key: 'icon_name', label: 'Icon Name', placeholder: 'Home, Heart, Users...' },
+  { key: 'icon_name', label: 'Icon' },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
 ];
 
 const statFields: FieldDef[] = [
   { key: 'label', label: 'Label', half: true },
   { key: 'value', label: 'Value', half: true },
-  { key: 'icon_name', label: 'Icon Name', half: true },
+  { key: 'icon_name', label: 'Icon', half: true },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
 ];
 

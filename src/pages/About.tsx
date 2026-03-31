@@ -5,8 +5,9 @@ import { LoadingSpinner } from '../components/StatusIndicators';
 export default function About() {
   const { data: about, loading: aL } = useFetchSingle<any>('about_page');
   const { data: values, loading: vL } = useFetch<any>('core_values', { order: { column: 'sort_order' } });
+  const { data: team, loading: tmL } = useFetch<any>('team_members', { order: { column: 'sort_order' }, eq: [['category', 'executive']] });
 
-  if (aL || vL) return <LoadingSpinner />;
+  if (aL || vL || tmL) return <LoadingSpinner />;
   const a = about || ({} as any);
   const colors = ['bg-[var(--color-green-4)]', 'bg-[var(--color-green-2)]', 'bg-[var(--color-green-3)]', 'bg-[var(--color-green-3)]'];
 
@@ -42,6 +43,29 @@ export default function About() {
             ))}
           </div>
         </div>
+
+        {team.length > 0 && (
+          <div>
+            <h2 className="text-3xl font-heading font-bold text-center text-[var(--color-green-5)] mb-12">Meet the Executive Board</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {team.map((member: any) => (
+                <div key={member.id} className="text-center">
+                  <div className="w-40 h-40 mx-auto rounded-full overflow-hidden mb-4 border-4 border-[var(--color-green-1)]">
+                    <img
+                      src={member.photo_url || `https://placehold.co/200x200?text=${encodeURIComponent(member.name)}`}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <h3 className="text-xl font-heading font-bold text-[var(--color-text-main)]">{member.name}</h3>
+                  <p className="text-[var(--color-green-4)] font-medium">{member.position}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

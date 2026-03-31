@@ -45,7 +45,7 @@ export default function AdminSettings() {
       <SectionCard title="General">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {fields.map(f => (
-            <FormField key={f.key} field={f} value={form[f.key] || ''} onChange={v => setForm(prev => ({ ...prev, [f.key]: v }))} />
+            <FormField key={f.key} field={f} value={form[f.key] || ''} onChange={(k, v) => setForm(prev => ({ ...prev, [k]: v }))} />
           ))}
         </div>
       </SectionCard>

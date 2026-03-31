@@ -4,17 +4,24 @@ import { PageHeader, SectionCard, ItemList, FieldDef } from '../components/Admin
 import { useFetch, useUpsert, useDelete } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
-const memberFields: FieldDef[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'position', label: 'Position' },
-  { key: 'category', label: 'Category', type: 'select', options: ['executive', 'committee', 'advisor'] },
-  { key: 'course', label: 'Course / Department', half: true },
-  { key: 'department', label: 'Department', half: true },
-  { key: 'bio', label: 'Bio', type: 'textarea', rows: 2 },
+const executiveFields: FieldDef[] = [
+  { key: 'name', label: 'Name', half: true },
+  { key: 'position', label: 'Position', half: true },
+  { key: 'course', label: 'Course', half: true },
   { key: 'email', label: 'Email', type: 'email', half: true },
+  { key: 'bio', label: 'Bio', type: 'textarea', rows: 3 },
   { key: 'linkedin', label: 'LinkedIn URL', type: 'url', half: true },
   { key: 'facebook', label: 'Facebook URL', type: 'url', half: true },
-  { key: 'image_url', label: 'Image URL', type: 'url', half: true },
+  { key: 'image_url', label: 'Image', type: 'url' },
+  { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
+  { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
+];
+
+const committeeFields: FieldDef[] = [
+  { key: 'name', label: 'Name', half: true },
+  { key: 'position', label: 'Position / Committee', half: true },
+  { key: 'course', label: 'Course', half: true },
+  { key: 'image_url', label: 'Image', type: 'url', half: true },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
   { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
 ];
@@ -24,7 +31,7 @@ const alumniFields: FieldDef[] = [
   { key: 'year', label: 'Year', half: true },
   { key: 'quote', label: 'Quote', type: 'textarea', rows: 3 },
   { key: 'current_position', label: 'Current Position' },
-  { key: 'image_url', label: 'Image URL', type: 'url' },
+  { key: 'image_url', label: 'Image', type: 'url' },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
   { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
 ];
@@ -37,19 +44,30 @@ export default function AdminEditTeam() {
   const { remove: removeMember } = useDelete('team_members');
   const { remove: removeAlumni } = useDelete('alumni_testimonials');
 
-  const [memberList, setMemberList] = useState<any[]>([]);
+  const [executiveList, setExecutiveList] = useState<any[]>([]);
+  const [committeeList, setCommitteeList] = useState<any[]>([]);
   const [alumniList, setAlumniList] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
-  useEffect(() => { setMemberList([...members]); }, [members]);
+  useEffect(() => {
+    const exec = members.filter((m: any) => m.category === 'executive');
+    const comm = members.filter((m: any) => m.category === 'committee');
+    setExecutiveList([...exec]);
+    setCommitteeList([...comm]);
+  }, [members]);
+
   useEffect(() => { setAlumniList([...alumni]); }, [alumni]);
 
   const handleSave = async () => {
     setSaving(true);
     setMsg('');
     try {
-      for (const m of memberList) await upsertMember(m);
+      const allMembers = [
+        ...executiveList.map(m => ({ ...m, category: 'executive' })),
+        ...committeeList.map(m => ({ ...m, category: 'committee' }))
+      ];
+      for (const m of allMembers) await upsertMember(m);
       for (const a of alumniList) await upsertAlumni(a);
       await Promise.all([refetchMembers(), refetchAlumni()]);
       setMsg('Saved!');
@@ -69,13 +87,22 @@ export default function AdminEditTeam() {
       </PageHeader>
       {msg && <div className={'mb-4 px-4 py-2 rounded-lg text-sm font-semibold ' + (msg.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700')}>{msg}</div>}
 
-      <SectionCard title="Team Members">
-        <ItemList items={memberList} fields={memberFields}
-          onSave={(item, idx) => { const next = [...memberList]; next[idx] = item; setMemberList(next); }}
-          onDelete={async (idx) => { if (memberList[idx].id) await removeMember(memberList[idx].id); setMemberList(prev => prev.filter((_, i) => i !== idx)); }}
-          onAdd={() => setMemberList(prev => [...prev, { name: '', position: '', category: 'executive', course: '', is_visible: true, sort_order: prev.length + 1 }])}
-          addLabel="Add Team Member"
-          renderPreview={(m) => <span className="text-sm font-semibold text-gray-800">{m.name || 'New Member'} <span className="text-xs text-gray-500">({m.category})</span></span>} />
+      <SectionCard title="Executive Board" description="Main leadership positions with full profiles">
+        <ItemList items={executiveList} fields={executiveFields}
+          onSave={(item, idx) => { const next = [...executiveList]; next[idx] = item; setExecutiveList(next); }}
+          onDelete={async (idx) => { if (executiveList[idx].id) await removeMember(executiveList[idx].id); setExecutiveList(prev => prev.filter((_, i) => i !== idx)); }}
+          onAdd={() => setExecutiveList(prev => [...prev, { name: '', position: '', category: 'executive', course: '', is_visible: true, sort_order: prev.length + 1 }])}
+          addLabel="Add Executive Board Member"
+          renderPreview={(m) => <span className="text-sm font-semibold text-gray-800">{m.name || 'New Executive'} <span className="text-xs text-gray-500">– {m.position || 'No position'}</span></span>} />
+      </SectionCard>
+
+      <SectionCard title="Committee Heads" description="Committee leaders with compact profiles">
+        <ItemList items={committeeList} fields={committeeFields}
+          onSave={(item, idx) => { const next = [...committeeList]; next[idx] = item; setCommitteeList(next); }}
+          onDelete={async (idx) => { if (committeeList[idx].id) await removeMember(committeeList[idx].id); setCommitteeList(prev => prev.filter((_, i) => i !== idx)); }}
+          onAdd={() => setCommitteeList(prev => [...prev, { name: '', position: '', category: 'committee', course: '', is_visible: true, sort_order: prev.length + 1 }])}
+          addLabel="Add Committee Head"
+          renderPreview={(m) => <span className="text-sm font-semibold text-gray-800">{m.name || 'New Committee Head'} <span className="text-xs text-gray-500">– {m.position || 'No committee'}</span></span>} />
       </SectionCard>
 
       <SectionCard title="Alumni Testimonials">

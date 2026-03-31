@@ -9,9 +9,8 @@ export default function Team() {
 
   if (mL || aL) return <LoadingSpinner />;
 
-  const exec = members.filter((m: any) => m.category === 'executive');
-  const committee = members.filter((m: any) => m.category === 'committee');
-  const advisors = members.filter((m: any) => m.category === 'advisor');
+  const exec = members.filter((m: any) => m.category === 'executive' && m.is_visible);
+  const committee = members.filter((m: any) => m.category === 'committee' && m.is_visible);
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
@@ -59,7 +58,7 @@ export default function Team() {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">Committee Heads</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {committee.map((h: any, i: number) => (
               <motion.div key={h.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: i * 0.1 }} className="text-center">
                 <div className="bg-white p-4 rounded-2xl scrapbook-border scrapbook-shadow hover:scale-105 transition-transform">
@@ -73,32 +72,6 @@ export default function Team() {
           </div>
         </div>
       </section>
-
-      {advisors.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">Faculty Advisors</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {advisors.map((a: any, i: number) => (
-                <motion.div key={a.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: i * 0.2 }} className="bg-[var(--color-bg-main)] p-6 rounded-2xl scrapbook-border scrapbook-shadow">
-                  <div className="flex gap-4 items-start">
-                    <img src={a.image_url || 'https://placehold.co/96x96?text=Advisor'} alt={a.name} className="w-24 h-24 rounded-full object-cover border-4 border-[var(--color-green-5)] flex-shrink-0" />
-                    <div className="flex-1">
-                      <h3 className="text-xl font-heading font-bold text-[var(--color-green-5)] mb-1">{a.name}</h3>
-                      <p className="text-[var(--color-green-4)] font-semibold mb-1">{a.position}</p>
-                      <p className="text-sm text-gray-600 mb-3">{a.department}</p>
-                      {a.bio && <p className="text-sm text-[var(--color-text-main)] mb-3">{a.bio}</p>}
-                      {a.email && <a href={'mailto:' + a.email} className="text-[var(--color-green-5)] hover:underline text-sm font-semibold">{a.email}</a>}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {alumni.length > 0 && (
         <section className="py-16 bg-[var(--color-green-1)]">

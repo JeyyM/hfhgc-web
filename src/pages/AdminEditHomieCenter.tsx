@@ -8,7 +8,7 @@ const testimonialFields: FieldDef[] = [
   { key: 'name', label: 'Name', half: true },
   { key: 'role', label: 'Role', half: true },
   { key: 'quote', label: 'Quote', type: 'textarea', rows: 3 },
-  { key: 'photo_url', label: 'Photo URL', type: 'url' },
+  { key: 'photo_url', label: 'Photo', type: 'gallery' },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
   { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
 ];
@@ -17,7 +17,7 @@ const announcementFields: FieldDef[] = [
   { key: 'title', label: 'Title' },
   { key: 'body', label: 'Body', type: 'textarea', rows: 3 },
   { key: 'tag', label: 'Tag', half: true },
-  { key: 'image_url', label: 'Image URL', type: 'url', half: true },
+  { key: 'image_url', label: 'Image', type: 'url', half: true },
   { key: 'published_at', label: 'Publish Date', type: 'date', half: true },
   { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
 ];

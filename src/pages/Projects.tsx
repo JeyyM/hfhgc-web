@@ -19,8 +19,8 @@ export default function Projects() {
     <div className="bg-[var(--color-bg-main)] min-h-screen">
       <section className="bg-[var(--color-green-5)] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold mb-4">Projects & Events</motion.h1>
-          <p className="text-xl text-[var(--color-green-1)] max-w-2xl mx-auto">Discover our upcoming activities and past accomplishments.</p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold text-white mb-4">Projects & Events</motion.h1>
+          <p className="text-xl text-white max-w-2xl mx-auto">Discover our upcoming activities and past accomplishments.</p>
         </div>
       </section>
 
