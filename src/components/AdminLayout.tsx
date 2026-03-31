@@ -24,8 +24,8 @@ const navItems = [
   { label: 'About Page', path: '/admin/about', icon: Info },
   { label: 'Team', path: '/admin/team', icon: Users },
   { label: 'Projects', path: '/admin/projects', icon: FolderKanban },
-  { label: 'Partnerships', path: '/admin/partnerships', icon: Handshake },
   { label: 'Homie Center', path: '/admin/homie-center', icon: MessageSquare },
+  { label: 'Partnerships', path: '/admin/partnerships', icon: Handshake },
 ];
 
 export default function AdminLayout() {

@@ -57,17 +57,6 @@ export default function AdminDashboard() {
           </motion.div>
         ))}
       </div>
-
-      {/* Quick info */}
-      <div className="mt-10 p-5 bg-[var(--color-green-1)]/30 border border-[var(--color-green-3)] rounded-xl">
-        <h3 className="font-heading font-bold text-[var(--color-green-5)] mb-2">💡 How it works</h3>
-        <ul className="text-sm text-gray-600 space-y-1.5">
-          <li>• Each section lets you <strong>add</strong>, <strong>edit</strong>, and <strong>delete</strong> items</li>
-          <li>• Changes will be saved to Supabase once the backend is connected</li>
-          <li>• Image fields accept Supabase Storage URLs — upload images via the Storage bucket</li>
-          <li>• Toggle visibility to hide items without deleting them</li>
-        </ul>
-      </div>
     </div>
   );
 }

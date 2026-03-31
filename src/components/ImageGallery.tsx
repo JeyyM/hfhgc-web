@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { X, Search, Upload, Image as ImageIcon, Check } from 'lucide-react';
+import { X, Search, Upload, Image as ImageIcon, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageGalleryModalProps {
   isOpen: boolean;
@@ -16,6 +16,13 @@ interface StorageImage {
   size: number;
 }
 
+// Cache for images to avoid re-fetching
+const imageCache: { images: StorageImage[] | null; timestamp: number } = {
+  images: null,
+  timestamp: 0,
+};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export default function ImageGalleryModal({
   isOpen,
   onClose,
@@ -27,11 +34,14 @@ export default function ImageGalleryModal({
   const [selectedImage, setSelectedImage] = useState<string | null>(currentImageUrl || null);
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const IMAGES_PER_PAGE = 20;
 
   // Update selected image when modal opens with new currentImageUrl
   useEffect(() => {
     if (isOpen) {
       setSelectedImage(currentImageUrl || null);
+      setPage(0); // Reset to first page
       loadImages();
     }
   }, [isOpen, currentImageUrl]);
@@ -40,11 +50,19 @@ export default function ImageGalleryModal({
     try {
       setLoading(true);
       
+      // Check cache first
+      const now = Date.now();
+      if (imageCache.images && (now - imageCache.timestamp) < CACHE_DURATION) {
+        setImages(imageCache.images);
+        setLoading(false);
+        return;
+      }
+
       // List all files in the website-images bucket
       const { data, error } = await supabase.storage
         .from('website-images')
         .list('', {
-          limit: 100,
+          limit: 200, // Increased limit
           offset: 0,
           sortBy: { column: 'created_at', order: 'desc' }
         });
@@ -67,6 +85,10 @@ export default function ImageGalleryModal({
           };
         });
 
+      // Update cache
+      imageCache.images = imagesWithUrls;
+      imageCache.timestamp = now;
+      
       setImages(imagesWithUrls);
     } catch (error) {
       console.error('Error loading images:', error);
@@ -111,7 +133,8 @@ export default function ImageGalleryModal({
 
         if (uploadError) throw uploadError;
 
-        // Reload gallery
+        // Reload gallery and invalidate cache
+        imageCache.images = null; // Invalidate cache
         await loadImages();
         
         // Auto-select the newly uploaded image
@@ -140,9 +163,24 @@ export default function ImageGalleryModal({
     }
   };
 
-  const filteredImages = images.filter(img => 
-    img.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Memoize filtered and paginated images
+  const { paginatedImages, totalPages } = useMemo(() => {
+    const filtered = images.filter(img => 
+      img.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    const start = page * IMAGES_PER_PAGE;
+    const end = start + IMAGES_PER_PAGE;
+    const paginated = filtered.slice(start, end);
+    const total = Math.ceil(filtered.length / IMAGES_PER_PAGE);
+    
+    return { paginatedImages: paginated, totalPages: total };
+  }, [images, searchQuery, page]);
+
+  // Reset to page 0 when search changes
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
 
   if (!isOpen) return null;
 
@@ -196,7 +234,7 @@ export default function ImageGalleryModal({
                 <p className="mt-4 text-gray-600">Loading images...</p>
               </div>
             </div>
-          ) : filteredImages.length === 0 ? (
+          ) : images.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <ImageIcon size={64} className="text-gray-400 mb-4" />
               <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-2">
@@ -216,61 +254,94 @@ export default function ImageGalleryModal({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredImages.map((image) => {
-                const isSelected = selectedImage === image.url;
-                const isCurrent = currentImageUrl === image.url;
-                
-                return (
-                  <div
-                    key={image.name}
-                    onClick={() => handleImageClick(image.url)}
-                    className={`group relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${
-                      isSelected
-                        ? 'ring-4 ring-[var(--color-green-5)] shadow-lg scale-105'
-                        : 'ring-2 ring-gray-200 hover:ring-[var(--color-green-5)]/50 hover:scale-102'
-                    }`}
-                  >
-                    <img 
-                      src={image.url} 
-                      alt={image.name}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="text-white text-center px-2">
-                        <p className="text-xs font-semibold truncate">{image.name}</p>
-                        <p className="text-xs mt-1">
-                          {new Date(image.created_at).toLocaleDateString()}
-                        </p>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {paginatedImages.map((image) => {
+                  const isSelected = selectedImage === image.url;
+                  const isCurrent = currentImageUrl === image.url;
+                  
+                  return (
+                    <div
+                      key={image.name}
+                      onClick={() => handleImageClick(image.url)}
+                      className={`group relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all ${
+                        isSelected
+                          ? 'ring-4 ring-[var(--color-green-5)] shadow-lg scale-105'
+                          : 'ring-2 ring-gray-200 hover:ring-[var(--color-green-5)]/50 hover:scale-102'
+                      }`}
+                    >
+                      <img 
+                        src={image.url} 
+                        alt={image.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {/* Overlay on hover */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="text-white text-center px-2">
+                          <p className="text-xs font-semibold truncate">{image.name}</p>
+                          <p className="text-xs mt-1">
+                            {new Date(image.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Selected indicator */}
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 h-8 w-8 bg-[var(--color-green-5)] rounded-full flex items-center justify-center shadow-lg">
+                          <Check className="text-white" size={16} />
+                        </div>
+                      )}
+
+                      {/* Current image indicator */}
+                      {isCurrent && (
+                        <div className="absolute top-2 left-2 px-2 py-1 bg-blue-500 rounded-md text-white text-xs font-semibold">
+                          Current
+                        </div>
+                      )}
                     </div>
+                  );
+                })}
+              </div>
 
-                    {/* Selected indicator */}
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 h-8 w-8 bg-[var(--color-green-5)] rounded-full flex items-center justify-center shadow-lg">
-                        <Check className="text-white" size={16} />
-                      </div>
-                    )}
-
-                    {/* Current image indicator */}
-                    {isCurrent && (
-                      <div className="absolute top-2 left-2 px-2 py-1 bg-blue-500 rounded-md text-white text-xs font-semibold">
-                        Current
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <button
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="p-2 rounded-lg border-2 border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Previous page"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  <span className="text-sm font-semibold text-gray-700">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                  
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                    className="p-2 rounded-lg border-2 border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Next page"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t-2 border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            {filteredImages.length} {filteredImages.length === 1 ? 'image' : 'images'} available
+            {images.length} {images.length === 1 ? 'image' : 'images'} total
+            {searchQuery && paginatedImages.length !== images.length && (
+              <span className="ml-2">• {paginatedImages.length} matching</span>
+            )}
             {selectedImage && (
               <span className="ml-2 text-[var(--color-green-5)] font-semibold">• 1 selected</span>
             )}
