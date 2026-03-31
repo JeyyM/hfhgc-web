@@ -1,9 +1,18 @@
 ﻿import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { ExternalLink, Heart, Building, Users, CheckCircle, Handshake, Globe, Quote } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
 export default function Partnerships() {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const { data: partners, loading: pL } = useFetch<any>('partners', { order: { column: 'sort_order' } });
   const { data: testimonials, loading: tL } = useFetch<any>('partner_testimonials', { order: { column: 'sort_order' } });
   const { data: benefits, loading: bL } = useFetch<any>('partnership_benefits', { order: { column: 'sort_order' } });
@@ -102,7 +111,7 @@ export default function Partnerships() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-heading font-bold text-[var(--color-green-5)] mb-4 text-center">Our Current Partners</h2>
             <p className="text-center text-[var(--color-text-main)] max-w-2xl mx-auto mb-12">We're proud to work alongside these incredible organizations who share our vision of homes, communities, and hope.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className={`grid ${windowWidth < 600 ? 'grid-cols-1' : windowWidth < 1024 ? 'grid-cols-2' : 'grid-cols-3'} gap-8`}>
               {currentPartners.map((p: any, i: number) => (
                 <motion.div 
                   key={p.id} 

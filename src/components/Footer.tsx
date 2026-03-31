@@ -5,10 +5,10 @@ export default function Footer() {
   return (
     <footer className="bg-[var(--color-green-5)] text-white pt-10 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-8">
+        <div className="flex flex-row items-center gap-8 justify-between space-x-8 flex-nowrap">
 
           {/* Logo + Info */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 w-1/4">
             <img
               src="/HFHGC Logo White.png"
               alt="HFHGC Logo"
@@ -34,10 +34,10 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links — horizontal wrap */}
-          <div className="flex-1">
-            <h3 className="font-heading font-semibold text-lg mb-4 text-white">Quick Links</h3>
-            <ul className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+          {/* Quick Links */}
+          <div className="flex-1 w-3/4 flex justify-end items-center">
+            <h3 className="font-heading font-semibold text-lg mb-4 text-white mr-8">Quick Links</h3>
+            <ul className="flex gap-x-8 text-sm">
               <li><Link to="/about" className="hover:underline">About Us</Link></li>
               <li><Link to="/team" className="hover:underline">Our Team</Link></li>
               <li><Link to="/projects" className="hover:underline">Projects</Link></li>

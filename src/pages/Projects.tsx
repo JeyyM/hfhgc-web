@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Users, ExternalLink, Clock, Tag, ArrowRight } from 'lucide-react';
@@ -7,8 +7,15 @@ import { LoadingSpinner } from '../components/StatusIndicators';
 
 export default function Projects() {
   const navigate = useNavigate();
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const { data: projects, loading } = useFetch<any>('projects', { order: { column: 'sort_order' } });
   const [tab, setTab] = useState<'upcoming' | 'completed'>('upcoming');
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (loading) return <LoadingSpinner />;
 
@@ -34,7 +41,7 @@ export default function Projects() {
 
         {list.length === 0 && <p className="text-center text-gray-500 py-16">No {tab} projects at the moment.</p>}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+        <div className={`grid ${windowWidth < 1280 ? 'grid-cols-1' : 'grid-cols-2'} gap-6 pb-8`}>
           {list.map((p: any, i: number) => (
             <motion.div 
               key={p.id} 
@@ -46,7 +53,7 @@ export default function Projects() {
               <div className="flex flex-col sm:flex-row min-h-[320px]">
                 {/* Cover Image - Left Side */}
                 {(p.cover_image_url || p.image_url) && (
-                  <div className="relative w-full sm:w-72 h-64 sm:h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-[var(--color-green-2)] to-[var(--color-green-3)]">
+                  <div className={`relative w-full h-64 sm:h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-[var(--color-green-2)] to-[var(--color-green-3)] ${windowWidth < 1280 ? 'sm:w-96' : 'sm:w-72'}`}>
                     <img 
                       src={p.cover_image_url || p.image_url} 
                       alt={p.title} 
@@ -72,7 +79,7 @@ export default function Projects() {
                 )}
 
                 {/* Content - Right Side */}
-                <div className="p-5 sm:p-6 flex-1 flex flex-col min-w-0">
+                <div className={`flex-1 flex flex-col min-w-0 ${windowWidth < 1280 ? 'p-6 sm:p-8' : 'p-5 sm:p-6'}`}>
                   <h3 className="text-xl sm:text-2xl font-heading font-bold text-[var(--color-green-5)] mb-2 line-clamp-2 group-hover:text-[var(--color-green-4)] transition-colors">
                     {p.title}
                   </h3>
@@ -126,7 +133,7 @@ export default function Projects() {
                     {/* Tags */}
                     {p.tags && p.tags.length > 0 && (
                       <>
-                        {p.tags.slice(0, 2).map((tag: string, idx: number) => (
+                        {p.tags.map((tag: string, idx: number) => (
                           <span 
                             key={idx}
                             className="text-xs px-2.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg font-medium"
@@ -134,11 +141,6 @@ export default function Projects() {
                             {tag}
                           </span>
                         ))}
-                        {p.tags.length > 2 && (
-                          <span className="text-xs px-2.5 py-1.5 bg-gray-100 text-gray-500 rounded-lg">
-                            +{p.tags.length - 2}
-                          </span>
-                        )}
                       </>
                     )}
                   </div>

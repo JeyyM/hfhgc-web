@@ -92,7 +92,7 @@ export default function HomiesCenter() {
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.35, ease: 'easeInOut' }}
-                  className="flex flex-col md:flex-row items-center gap-10"
+                  className="flex flex-row items-center gap-10"
                 >
                   <div className="flex-shrink-0">
                     {visible[currentSlide]?.photo_url && (

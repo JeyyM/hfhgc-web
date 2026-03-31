@@ -177,15 +177,15 @@ function IconPickerModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Choose an Icon</h3>
+      <div className="bg-white rounded-2xl shadow-lg max-w-md w-full max-h-[70vh] flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">Choose an Icon</h3>
             <button 
               onClick={onClose}
-              className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
           <input 
@@ -196,27 +196,27 @@ function IconPickerModal({
               setCurrentPage(0);
             }}
             placeholder="Search icons..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all"
           />
         </div>
         
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4">
           <div className="grid grid-cols-5 gap-2">
-            {currentIcons.map((iconName) => {
+            {currentIcons.slice(0, 25).map((iconName) => {
               const IconComponent = LUCIDE_ICONS[iconName];
               return (
                 <button
                   key={iconName}
                   onClick={() => handleIconSelect(iconName)}
-                  className={`aspect-square rounded-lg border-2 p-1.5 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${
+                  className={`aspect-square rounded-md border p-1 transition-all hover:scale-105 flex flex-col items-center justify-center gap-0.5 ${
                     selectedIcon === iconName 
                       ? 'border-[var(--color-green-5)] bg-[var(--color-green-1)] text-[var(--color-green-5)]' 
                       : 'border-gray-200 bg-white hover:border-[var(--color-green-3)] text-gray-600'
                   }`}
                   title={iconName}
                 >
-                  <IconComponent size={18} />
-                  <span className="text-[9px] text-center truncate w-full leading-tight mt-0.5">{iconName}</span>
+                  <IconComponent size={16} />
+                  <span className="text-[8px] text-center truncate w-full leading-tight mt-0.5">{iconName}</span>
                 </button>
               );
             })}
@@ -224,7 +224,7 @@ function IconPickerModal({
         </div>
 
         {totalPages > 1 && (
-          <div className="p-6 border-t border-gray-200 flex items-center justify-between">
+          <div className="p-4 border-t border-gray-200 flex items-center justify-between">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
               disabled={currentPage === 0}

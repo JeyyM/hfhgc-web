@@ -1,8 +1,17 @@
 ﻿import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { useFetchSingle, useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
 export default function About() {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const { data: about, loading: aL } = useFetchSingle<any>('about_page');
   const { data: values, loading: vL } = useFetch<any>('core_values', { order: { column: 'sort_order' } });
   const { data: team, loading: tmL } = useFetch<any>('team_members', { order: { column: 'sort_order' }, eq: [['category', 'executive']] });
@@ -19,12 +28,20 @@ export default function About() {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-xl text-[var(--color-text-main)] max-w-3xl mx-auto">{a.header_subtitle}</motion.p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24">
-          <div className="polaroid -rotate-2">
-            <img src={a.story_image_url || 'https://placehold.co/600x500?text=Our+Story'} alt="Our Team" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
-            <p className="font-heading text-center mt-4 text-xl text-[var(--color-text-main)]">{a.story_image_caption}</p>
-          </div>
+        <div className={`grid ${windowWidth < 730 ? 'grid-cols-1' : 'grid-cols-2'} gap-12 items-center mb-24`}>
+          {windowWidth >= 730 && (
+            <div className="polaroid -rotate-2">
+              <img src={a.story_image_url || 'https://placehold.co/600x500?text=Our+Story'} alt="Our Team" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
+              <p className="font-heading text-center mt-4 text-xl text-[var(--color-text-main)]">{a.story_image_caption}</p>
+            </div>
+          )}
           <div>
+            {windowWidth < 730 && (
+              <div className="polaroid -rotate-2 mb-8 max-w-md mx-auto">
+                <img src={a.story_image_url || 'https://placehold.co/600x500?text=Our+Story'} alt="Our Team" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
+                <p className="font-heading text-center mt-4 text-xl text-[var(--color-text-main)]">{a.story_image_caption}</p>
+              </div>
+            )}
             <h2 className="text-3xl font-heading font-bold text-[var(--color-green-4)] mb-6">{a.story_title}</h2>
             <div className="space-y-4 text-lg text-[var(--color-text-main)]">
               {(a.story_body || '').split('\n').filter((p: string) => p.trim()).map((p: string, i: number) => <p key={i}>{p}</p>)}
@@ -34,7 +51,7 @@ export default function About() {
 
         <div className="mb-24">
           <h2 className="text-3xl font-heading font-bold text-center text-[var(--color-green-5)] mb-12">Our Core Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className={`grid ${windowWidth < 765 ? 'grid-cols-2' : 'grid-cols-4'} gap-6`}>
             {values.map((v: any, idx: number) => (
               <motion.div key={v.id} whileHover={{ scale: 1.05 }} className={colors[idx % colors.length] + ' p-6 rounded-xl text-white scrapbook-shadow transform ' + (idx % 2 === 0 ? 'rotate-1' : '-rotate-1')}>
                 <h3 className="text-2xl font-heading font-bold mb-3">{v.title}</h3>
@@ -47,7 +64,7 @@ export default function About() {
         {team.length > 0 && (
           <div>
             <h2 className="text-3xl font-heading font-bold text-center text-[var(--color-green-5)] mb-12">Meet the Executive Board</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className={`grid ${windowWidth < 600 ? 'grid-cols-2' : windowWidth < 900 ? 'grid-cols-3' : 'grid-cols-4'} gap-8`}>
               {team.map((member: any) => (
                 <div key={member.id} className="text-center">
                   <div className="w-40 h-40 mx-auto rounded-full overflow-hidden mb-4 border-4 border-[var(--color-green-1)]">

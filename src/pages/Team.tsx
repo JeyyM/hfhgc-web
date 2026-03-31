@@ -1,9 +1,18 @@
 ﻿import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { Mail, Linkedin, Facebook, Users } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
 export default function Team() {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const { data: members, loading: mL } = useFetch<any>('team_members', { order: { column: 'sort_order' } });
   const { data: alumni, loading: aL } = useFetch<any>('alumni_testimonials', { order: { column: 'sort_order' } });
 
@@ -28,7 +37,7 @@ export default function Team() {
           <div className="text-center mb-12">
             <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">Executive Board AY 2025-2026</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={`grid ${windowWidth < 570 ? 'grid-cols-1' : windowWidth < 1024 ? 'grid-cols-2' : 'grid-cols-3'} gap-8`}>
             {exec.map((m: any, i: number) => (
               <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: i * 0.1 }} className="bg-[var(--color-bg-main)] rounded-2xl overflow-hidden scrapbook-border scrapbook-shadow hover:scale-105 transition-transform">
                 <div className="relative">

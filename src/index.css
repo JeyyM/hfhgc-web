@@ -1,6 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* Responsive Font Size Scaling System */
+/* Base size: 1rem = 16px at 100% */
+html {
+  font-size: 100%; /* Desktop: 16px base */
+}
+
+/* Large tablets and small desktops */
+@media (max-width: 1200px) {
+  html {
+    font-size: 93.75%; /* 15px base - scales down by 6.25% */
+  }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+  html {
+    font-size: 87.5%; /* 14px base - scales down by 12.5% */
+  }
+}
+
+/* Small tablets and large phones */
+@media (max-width: 768px) {
+  html {
+    font-size: 81.25%; /* 13px base - scales down by 18.75% */
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 576px) {
+  html {
+    font-size: 75%; /* 12px base - scales down by 25% */
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 375px) {
+  html {
+    font-size: 68.75%; /* 11px base - scales down by 31.25% */
+  }
+}
+
 @font-face {
   font-family: "VAG Rounded Next";
   src: url('/fonts/VAG Rounded Next Thin.ttf') format('truetype');
@@ -226,3 +267,170 @@ h1, h2, h3, h4, h5, h6 {
   mask-size: 20px 20px;
   mask-position: -5px -5px;
 }
+
+/* Auto-center last item in 2-column grid if it's alone */
+.auto-grid-center > *:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+/* ============================================ */
+/* RESPONSIVE STYLES - Hero Section */
+/* ============================================ */
+
+/* At 1050px and below - Start compressing hero */
+@media (max-width: 1050px) {
+  .hero-section {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  /* Switch to single column layout */
+  .hero-section .grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  /* Reduce heading sizes */
+  .hero-section h1 {
+    font-size: 3.5rem !important; /* Down from text-7xl (4.5rem) */
+    text-align: center;
+  }
+
+  /* Center text content */
+  .hero-section p {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Center buttons */
+  .hero-section .flex {
+    justify-content: center;
+  }
+
+  /* Keep buttons in one row - prevent wrapping */
+  .hero-section .flex {
+    flex-wrap: nowrap !important;
+  }
+
+  /* Adjust polaroid for medium screens */
+  .hero-section .polaroid {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* Reduce decorative blobs */
+  .hero-section .absolute {
+    opacity: 0.15 !important;
+  }
+}
+
+/* At 768px and below - Further compression */
+@media (max-width: 768px) {
+  .hero-section {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .hero-section h1 {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-section p {
+    font-size: 1.125rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Keep buttons in a row - do NOT stack */
+  .hero-section .flex {
+    flex-wrap: nowrap !important;
+  }
+
+  /* Smaller polaroid */
+  .hero-section .polaroid {
+    max-width: 400px;
+    padding: 10px 10px 30px 10px !important;
+  }
+}
+
+/* At 600px and below - Smaller polaroid */
+@media (max-width: 600px) {
+  .hero-section .polaroid {
+    max-width: 320px !important;
+    padding: 8px 8px 24px 8px !important;
+  }
+
+  .hero-section .polaroid img {
+    max-height: 240px;
+    object-fit: cover;
+  }
+
+  .hero-section .polaroid p {
+    font-size: 0.875rem !important;
+    margin-top: 0.5rem !important;
+  }
+}
+
+/* At 576px and below - Mobile optimization */
+@media (max-width: 576px) {
+  .hero-section {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .hero-section h1 {
+    font-size: 2rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-section p {
+    font-size: 1rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  /* Smaller buttons */
+  .hero-section .flex a {
+    padding: 0.625rem 1.5rem !important;
+    font-size: 0.9375rem !important;
+  }
+
+  /* Compact polaroid */
+  .hero-section .polaroid {
+    max-width: 100%;
+    padding: 8px 8px 24px 8px !important;
+  }
+
+  .hero-section .polaroid p {
+    font-size: 1rem !important;
+    margin-top: 0.75rem !important;
+  }
+
+  /* Hide decorative blobs on mobile */
+  .hero-section .absolute {
+    display: none !important;
+  }
+}
+
+/* ============================================ */
+/* RESPONSIVE STYLES - Home Cards (Mission/Vision) */
+/* ============================================ */
+
+/* At 700px and below - Reduce padding on home cards */
+@media (max-width: 700px) {
+  /* Mission/Vision cards section */
+  section.py-16 .grid .bg-\[var\(--color-green-5\)\] {
+    padding: 1.5rem !important;
+  }
+
+  /* Get in Touch cards section */
+  section.py-24 .grid .bg-\[var\(--color-green-5\)\] {
+    padding: 1.5rem !important;
+  }
+}
+
