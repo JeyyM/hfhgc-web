@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useFetchSingle, useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 export default function About() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -21,6 +22,7 @@ export default function About() {
 
   return (
     <div className="bg-[var(--color-bg-main)] page-grid min-h-screen py-16">
+      <SEO title="About Us" description="Learn about Habitat for Humanity Green Chapter DLSU — our vision, mission, core values, and commitment to building sustainable communities." path="/about" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-6">{a.header_title || 'About Us'}</motion.h1>

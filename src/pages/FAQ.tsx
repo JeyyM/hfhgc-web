@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 export default function FAQ() {
   const { data: faqs, loading } = useFetch<any>('faqs', { order: { column: 'sort_order' } });
@@ -14,6 +15,7 @@ export default function FAQ() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="FAQ" description="Frequently asked questions about Habitat for Humanity Green Chapter DLSU — membership, events, volunteering, and more." path="/faq" />
       <section className="bg-[var(--color-green-5)] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold mb-4">FAQ</motion.h1>

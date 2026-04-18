@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -95,6 +96,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Admin Panel — HFHGC</title>
+      </Helmet>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div

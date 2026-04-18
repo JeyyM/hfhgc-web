@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Calendar, MapPin, Users, ExternalLink, Clock, Tag, ArrowRight } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function Projects() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="Projects" description="Explore the projects and initiatives by Habitat for Humanity Green Chapter DLSU — sustainable housing builds, community outreach, and more." path="/projects" />
       <section className="bg-[var(--color-green-5)] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold text-white mb-4">Projects & Events</motion.h1>

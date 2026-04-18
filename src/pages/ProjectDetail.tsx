@@ -9,6 +9,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { useEffect, useState } from 'react';
+import SEO from '../components/SEO';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -80,6 +81,7 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)]">
+      <SEO title={project.title} description={project.description || `Learn about ${project.title} — a project by Habitat for Humanity Green Chapter DLSU.`} path={`/projects/${id}`} image={project.cover_image_url} />
       {/* Hero Section with Cover Image */}
       {project.cover_image_url && (
         <div className="relative h-96 overflow-hidden bg-gradient-to-br from-[var(--color-green-2)] to-[var(--color-green-3)]">

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Bell, Quote, MessageCircleQuestion } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useSupabase';
+import SEO from '../components/SEO';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
 export default function HomiesCenter() {
@@ -43,6 +44,7 @@ export default function HomiesCenter() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="Homie Center" description="Stay updated with announcements, testimonials, and FAQs from the Habitat for Humanity Green Chapter DLSU community." path="/homies-center" />
 
       {/* Hero */}
       <section className="bg-[var(--color-green-5)] text-white py-20">

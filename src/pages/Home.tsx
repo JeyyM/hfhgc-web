@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useFetchSingle, useFetch, useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 const iconMap: Record<string, any> = { Home: HomeIcon, Heart, Users, Clock, Mail, MapPin };
 
@@ -48,6 +49,7 @@ export default function Home() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="Home" description="Habitat for Humanity Green Chapter DLSU — Building homes, communities, and hope through sustainable housing initiatives in the Philippines." path="/" />
       {/* Hero */}
       <section className="hero-section relative overflow-hidden py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

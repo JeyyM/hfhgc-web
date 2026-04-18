@@ -4,6 +4,7 @@ import { Send, Mail, MapPin, Phone } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import { useInsert, useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 // ── EmailJS configuration ──
 // 1. Go to https://www.emailjs.com/ and sign up (free)
@@ -58,10 +59,11 @@ export default function Contact() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="Contact Us" description="Get in touch with Habitat for Humanity Green Chapter DLSU. Send us a message or reach out via email." path="/contact" />
       <section className="bg-[var(--color-green-5)] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold mb-4">Contact Us</motion.h1>
-          <p className="text-xl text-[var(--color-green-1)] max-w-2xl mx-auto">We'd love to hear from you. Reach out anytime!</p>
+          <p className="text-xl text-white max-w-2xl mx-auto">We'd love to hear from you. Reach out anytime!</p>
         </div>
       </section>
 

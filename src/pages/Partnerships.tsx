@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ExternalLink, Heart, Building, Users, CheckCircle, Handshake, Globe, Quote } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import SEO from '../components/SEO';
 
 export default function Partnerships() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -35,6 +36,7 @@ export default function Partnerships() {
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
+      <SEO title="Partnerships" description="Discover the partnerships and collaborations of Habitat for Humanity Green Chapter DLSU with organizations dedicated to sustainable housing." path="/partnerships" />
       <section className="bg-[var(--color-green-5)] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-heading font-bold mb-4">Our Partners</motion.h1>
