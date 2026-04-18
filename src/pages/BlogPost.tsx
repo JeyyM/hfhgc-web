@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
+import DOMPurify from 'dompurify';
 
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +40,7 @@ export default function BlogPost() {
             <span className="flex items-center gap-1"><Calendar size={14} />{new Date(post.published_at).toLocaleDateString()}</span>
             <span className="flex items-center gap-1"><Clock size={14} />{post.read_time}</span>
           </div>
-          <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-[var(--color-green-5)] prose-a:text-[var(--color-green-5)]" dangerouslySetInnerHTML={{ __html: post.content || '' }} />
+          <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-[var(--color-green-5)] prose-a:text-[var(--color-green-5)]" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '', { ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','br','strong','em','u','s','a','ul','ol','li','blockquote','img','span','div','table','thead','tbody','tr','th','td','hr','pre','code'], ALLOWED_ATTR: ['href','src','alt','class','style','target','rel','width','height'] }) }} />
         </motion.article>
       </div>
     </div>
