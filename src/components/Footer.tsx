@@ -28,18 +28,17 @@ export default function Footer() {
               <a href="#" className="text-white hover:text-[var(--color-green-2)] transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="mailto:contact@hfhgc.org" className="text-white hover:text-[var(--color-green-2)] transition-colors">
+              <a href="mailto:habitatforhumanitydlsu@gmail.com" className="text-white hover:text-[var(--color-green-2)] transition-colors">
                 <Mail className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="flex-1 w-3/4 flex justify-end items-center">
-            <h3 className="font-heading font-semibold text-lg mb-4 text-white mr-8">Quick Links</h3>
-            <ul className="flex gap-x-8 text-sm">
+          <div className="flex-1">
+            <h3 className="font-heading font-semibold text-lg mb-4 text-white">Quick Links</h3>
+            <ul className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
               <li><Link to="/about" className="hover:underline">About Us</Link></li>
-              <li><Link to="/team" className="hover:underline">Our Team</Link></li>
               <li><Link to="/projects" className="hover:underline">Projects</Link></li>
               <li><Link to="/homies-center" className="hover:underline">Homie Center</Link></li>
               <li><Link to="/partnerships" className="hover:underline">Partnerships</Link></li>

@@ -17,8 +17,6 @@ DROP TABLE IF EXISTS announcements CASCADE;
 DROP TABLE IF EXISTS testimonials CASCADE;
 DROP TABLE IF EXISTS projects CASCADE;
 DROP TABLE IF EXISTS blog_posts CASCADE;
-DROP TABLE IF EXISTS alumni_testimonials CASCADE;
-DROP TABLE IF EXISTS team_members CASCADE;
 DROP TABLE IF EXISTS core_values CASCADE;
 DROP TABLE IF EXISTS about_page CASCADE;
 DROP TABLE IF EXISTS impact_stats CASCADE;
@@ -128,6 +126,12 @@ CREATE TABLE about_page (
   story_body      TEXT NOT NULL DEFAULT 'Founded by passionate Lasallians, the Habitat for Humanity Green Chapter (HFHGC) serves as the university arm of Habitat for Humanity Philippines.\n\nWe believe that every family deserves a decent and safe place to live. Through volunteerism, advocacy, and fundraising, we mobilize the youth to address the housing crisis in the Philippines.\n\nOur core values are rooted in faith, community, and service. We don''t just build houses; we build homes, communities, and hope.',
   story_image_url TEXT NOT NULL DEFAULT '',
   story_image_caption TEXT NOT NULL DEFAULT 'The Green Chapter Family',
+  vision_title    TEXT NOT NULL DEFAULT 'Vision',
+  vision_body     TEXT NOT NULL DEFAULT '',
+  vision_image_url TEXT NOT NULL DEFAULT '',
+  mission_title   TEXT NOT NULL DEFAULT 'Mission',
+  mission_body    TEXT NOT NULL DEFAULT '',
+  mission_image_url TEXT NOT NULL DEFAULT '',
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 
@@ -152,39 +156,6 @@ ON CONFLICT DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║  4. TEAM PAGE                                                          ║
--- ╚══════════════════════════════════════════════════════════════════════════╝
-
-CREATE TABLE team_members (
-  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name        TEXT NOT NULL,
-  position    TEXT NOT NULL,
-  category    TEXT NOT NULL CHECK (category IN ('executive', 'committee', 'advisor')),
-  course      TEXT,                           -- e.g. '4th Year Management'
-  department  TEXT,                           -- for advisors
-  bio         TEXT,
-  email       TEXT,
-  linkedin    TEXT,
-  facebook    TEXT,
-  image_url   TEXT NOT NULL DEFAULT '',
-  sort_order  INT NOT NULL DEFAULT 0,
-  is_visible  BOOLEAN NOT NULL DEFAULT true,
-  updated_at  TIMESTAMPTZ DEFAULT now()
-);
-
--- Alumni / testimonials shown on Team page
-CREATE TABLE alumni_testimonials (
-  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name         TEXT NOT NULL,
-  year         TEXT NOT NULL,                 -- e.g. 'Alumni - Class of 2024'
-  quote        TEXT NOT NULL,
-  current_position TEXT,                      -- e.g. 'Architect at XYZ Corp'
-  image_url    TEXT NOT NULL DEFAULT '',
-  sort_order   INT NOT NULL DEFAULT 0,
-  is_visible   BOOLEAN NOT NULL DEFAULT true,
-  updated_at   TIMESTAMPTZ DEFAULT now()
-);
-
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
 -- ║  5. BLOG  (created before projects — projects references blog_posts)   ║
@@ -373,8 +344,6 @@ ALTER TABLE home_cards           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE impact_stats         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE about_page           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE core_values          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE team_members         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE alumni_testimonials  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blog_posts           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE testimonials         ENABLE ROW LEVEL SECURITY;
@@ -395,8 +364,6 @@ DROP POLICY IF EXISTS "Public read" ON home_cards;
 DROP POLICY IF EXISTS "Public read" ON impact_stats;
 DROP POLICY IF EXISTS "Public read" ON about_page;
 DROP POLICY IF EXISTS "Public read" ON core_values;
-DROP POLICY IF EXISTS "Public read" ON team_members;
-DROP POLICY IF EXISTS "Public read" ON alumni_testimonials;
 DROP POLICY IF EXISTS "Public read" ON projects;
 DROP POLICY IF EXISTS "Public read" ON blog_posts;
 DROP POLICY IF EXISTS "Public read" ON testimonials;
@@ -412,8 +379,6 @@ DROP POLICY IF EXISTS "Admin full access" ON home_cards;
 DROP POLICY IF EXISTS "Admin full access" ON impact_stats;
 DROP POLICY IF EXISTS "Admin full access" ON about_page;
 DROP POLICY IF EXISTS "Admin full access" ON core_values;
-DROP POLICY IF EXISTS "Admin full access" ON team_members;
-DROP POLICY IF EXISTS "Admin full access" ON alumni_testimonials;
 DROP POLICY IF EXISTS "Admin full access" ON projects;
 DROP POLICY IF EXISTS "Admin full access" ON blog_posts;
 DROP POLICY IF EXISTS "Admin full access" ON testimonials;
@@ -435,8 +400,6 @@ CREATE POLICY "Public read" ON home_cards           FOR SELECT USING (true);
 CREATE POLICY "Public read" ON impact_stats         FOR SELECT USING (true);
 CREATE POLICY "Public read" ON about_page           FOR SELECT USING (true);
 CREATE POLICY "Public read" ON core_values          FOR SELECT USING (true);
-CREATE POLICY "Public read" ON team_members         FOR SELECT USING (is_visible = true);
-CREATE POLICY "Public read" ON alumni_testimonials  FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON projects             FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON blog_posts           FOR SELECT USING (is_published = true);
 CREATE POLICY "Public read" ON testimonials         FOR SELECT USING (is_visible = true);
@@ -467,8 +430,6 @@ CREATE POLICY "Admin full access" ON home_cards           FOR ALL USING (is_admi
 CREATE POLICY "Admin full access" ON impact_stats         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON about_page           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON core_values          FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON team_members         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON alumni_testimonials  FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON projects             FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON blog_posts           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON testimonials         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
@@ -517,7 +478,7 @@ DECLARE
 BEGIN
   FOREACH tbl IN ARRAY ARRAY[
     'site_settings', 'home_hero', 'home_cards', 'impact_stats',
-    'about_page', 'core_values', 'team_members', 'alumni_testimonials',
+    'about_page', 'core_values',
     'projects', 'blog_posts', 'testimonials', 'announcements', 'faqs',
     'partners', 'partner_testimonials', 'partnership_benefits'
   ] LOOP

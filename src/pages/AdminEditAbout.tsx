@@ -13,6 +13,18 @@ const aboutFields: FieldDef[] = [
   { key: 'story_image_caption', label: 'Image Caption', type: 'text' },
 ];
 
+const visionFields: FieldDef[] = [
+  { key: 'vision_title', label: 'Vision Title' },
+  { key: 'vision_body', label: 'Vision Body', type: 'textarea', rows: 5 },
+  { key: 'vision_image_url', label: 'Vision Image', type: 'url' },
+];
+
+const missionFields: FieldDef[] = [
+  { key: 'mission_title', label: 'Mission Title' },
+  { key: 'mission_body', label: 'Mission Body', type: 'textarea', rows: 5 },
+  { key: 'mission_image_url', label: 'Mission Image', type: 'url' },
+];
+
 const valueFields: FieldDef[] = [
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description', type: 'textarea', rows: 2 },
@@ -60,6 +72,14 @@ export default function AdminEditAbout() {
 
       <SectionCard title="About Page Content">
         <DynamicForm fields={aboutFields} data={form} onChange={(k, v) => setForm(prev => ({ ...prev, [k]: v }))} />
+      </SectionCard>
+
+      <SectionCard title="Vision">
+        <DynamicForm fields={visionFields} data={form} onChange={(k, v) => setForm(prev => ({ ...prev, [k]: v }))} />
+      </SectionCard>
+
+      <SectionCard title="Mission">
+        <DynamicForm fields={missionFields} data={form} onChange={(k, v) => setForm(prev => ({ ...prev, [k]: v }))} />
       </SectionCard>
 
       <SectionCard title="Core Values">

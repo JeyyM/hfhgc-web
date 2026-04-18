@@ -14,13 +14,11 @@ import Partnerships from './pages/Partnerships';
 import HomiesCenter from './pages/HomiesCenter';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
-import Team from './pages/Team';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSettings from './pages/AdminSettings';
 import AdminEditHome from './pages/AdminEditHome';
 import AdminEditAbout from './pages/AdminEditAbout';
-import AdminEditTeam from './pages/AdminEditTeam';
 import AdminEditProjects from './pages/AdminEditProjects';
 import AdminEditProjectArticle from './pages/AdminEditProjectArticle';
 import AdminEditPartnerships from './pages/AdminEditPartnerships';
@@ -34,7 +32,6 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
-          <Route path="team" element={<Team />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="partnerships" element={<Partnerships />} />
@@ -52,7 +49,6 @@ export default function App() {
           <Route path="settings" element={<AdminSettings />} />
           <Route path="home" element={<AdminEditHome />} />
           <Route path="about" element={<AdminEditAbout />} />
-          <Route path="team" element={<AdminEditTeam />} />
           <Route path="projects" element={<AdminEditProjects />} />
           <Route path="projects/edit/:id" element={<AdminEditProjectArticle />} />
           <Route path="partnerships" element={<AdminEditPartnerships />} />

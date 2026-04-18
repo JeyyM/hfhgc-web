@@ -6,10 +6,10 @@ import clsx from 'clsx';
 const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'About Us', path: '/about' },
-  { name: 'Team', path: '/team' },
   { name: 'Projects', path: '/projects' },
   { name: 'Partnerships', path: '/partnerships' },
   { name: 'Homie Center', path: '/homies-center' },
+  { name: 'Contact', path: '/contact' },
 ];
 
 export default function Navbar() {

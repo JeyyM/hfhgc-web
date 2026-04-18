@@ -1,23 +1,58 @@
 ﻿import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Send, Mail, MapPin, Phone } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 import { useInsert, useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 
+// ── EmailJS configuration ──
+// 1. Go to https://www.emailjs.com/ and sign up (free)
+// 2. Add an Email Service (Gmail) → you'll get a SERVICE_ID
+// 3. Create an Email Template with variables: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
+// 4. Copy your Public Key from Account → General
+const EMAILJS_SERVICE_ID = 'service_6qvx0xp';
+const EMAILJS_TEMPLATE_ID = 'template_emq3pfe';
+const EMAILJS_PUBLIC_KEY = 'TTjL641mYEK-Q_Ugv';
+
 export default function Contact() {
   const { settings, loading: sL } = useSettings();
-  const { insert, loading: submitting } = useInsert<any>('contact_submissions');
+  const { insert } = useInsert<any>('contact_submissions');
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   if (sL) return <LoadingSpinner />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await insert(form);
-    if (result) {
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // Send email via EmailJS
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: form.name,
+          from_email: form.email,
+          subject: form.subject,
+          message: form.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+
+      // Also save to Supabase as backup
+      await insert(form);
+
       setSent(true);
       setForm({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      setError('Failed to send message. Please try again or email us directly.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -39,7 +74,7 @@ export default function Contact() {
                 <div className="w-12 h-12 bg-[var(--color-green-1)] rounded-full flex items-center justify-center flex-shrink-0"><Mail className="text-[var(--color-green-5)]" size={20} /></div>
                 <div>
                   <h3 className="font-heading font-bold text-[var(--color-green-5)]">Email</h3>
-                  <p className="text-[var(--color-text-main)]">{settings.org_email || 'hfhgc@dlsu.edu.ph'}</p>
+                  <p className="text-[var(--color-text-main)]">{settings.org_email || 'habitatforhumanitydlsu@gmail.com'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -90,6 +125,9 @@ export default function Contact() {
                 <button type="submit" disabled={submitting} className="w-full bg-[var(--color-green-5)] text-white font-bold py-3 rounded-full hover:bg-[var(--color-green-4)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                   <Send size={18} />{submitting ? 'Sending...' : 'Send Message'}
                 </button>
+                {error && (
+                  <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+                )}
               </form>
             )}
           </div>

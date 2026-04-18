@@ -14,9 +14,8 @@ export default function About() {
 
   const { data: about, loading: aL } = useFetchSingle<any>('about_page');
   const { data: values, loading: vL } = useFetch<any>('core_values', { order: { column: 'sort_order' } });
-  const { data: team, loading: tmL } = useFetch<any>('team_members', { order: { column: 'sort_order' }, eq: [['category', 'executive']] });
 
-  if (aL || vL || tmL) return <LoadingSpinner />;
+  if (aL || vL) return <LoadingSpinner />;
   const a = about || ({} as any);
   const colors = ['bg-[var(--color-green-4)]', 'bg-[var(--color-green-2)]', 'bg-[var(--color-green-3)]', 'bg-[var(--color-green-3)]'];
 
@@ -61,27 +60,50 @@ export default function About() {
           </div>
         </div>
 
-        {team.length > 0 && (
-          <div>
-            <h2 className="text-3xl font-heading font-bold text-center text-[var(--color-green-5)] mb-12">Meet the Executive Board</h2>
-            <div className={`grid ${windowWidth < 600 ? 'grid-cols-2' : windowWidth < 900 ? 'grid-cols-3' : 'grid-cols-4'} gap-8`}>
-              {team.map((member: any) => (
-                <div key={member.id} className="text-center">
-                  <div className="w-40 h-40 mx-auto rounded-full overflow-hidden mb-4 border-4 border-[var(--color-green-1)]">
-                    <img
-                      src={member.photo_url || `https://placehold.co/200x200?text=${encodeURIComponent(member.name)}`}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <h3 className="text-xl font-heading font-bold text-[var(--color-text-main)]">{member.name}</h3>
-                  <p className="text-[var(--color-green-4)] font-medium">{member.position}</p>
+        {/* Vision & Mission */}
+        <div className="mb-24 space-y-16">
+          {/* Vision — image on left, text on right */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className={`grid ${windowWidth < 730 ? 'grid-cols-1' : 'grid-cols-2'} gap-12 items-center`}>
+            {windowWidth >= 730 && (
+              <div className="polaroid -rotate-1">
+                <img src={a.vision_image_url || 'https://placehold.co/600x400?text=Vision'} alt="Vision" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
+              </div>
+            )}
+            <div>
+              {windowWidth < 730 && a.vision_image_url && (
+                <div className="polaroid -rotate-1 mb-8 max-w-md mx-auto">
+                  <img src={a.vision_image_url} alt="Vision" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
                 </div>
-              ))}
+              )}
+              <h2 className="text-3xl font-heading font-bold text-[var(--color-green-5)] mb-6">{a.vision_title || 'Vision'}</h2>
+              <div className="space-y-4 text-lg text-[var(--color-text-main)]">
+                {(a.vision_body || '').split('\n').filter((p: string) => p.trim()).map((p: string, i: number) => <p key={i}>{p}</p>)}
+              </div>
             </div>
-          </div>
-        )}
+          </motion.div>
+
+          {/* Mission — text on left, image on right */}
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className={`grid ${windowWidth < 730 ? 'grid-cols-1' : 'grid-cols-2'} gap-12 items-center`}>
+            <div>
+              {windowWidth < 730 && a.mission_image_url && (
+                <div className="polaroid rotate-[4deg] mb-8 max-w-md mx-auto">
+                  <img src={a.mission_image_url} alt="Mission" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
+                </div>
+              )}
+              <h2 className="text-3xl font-heading font-bold text-[var(--color-green-4)] mb-6">{a.mission_title || 'Mission'}</h2>
+              <div className="space-y-4 text-lg text-[var(--color-text-main)]">
+                {(a.mission_body || '').split('\n').filter((p: string) => p.trim()).map((p: string, i: number) => <p key={i}>{p}</p>)}
+              </div>
+            </div>
+            {windowWidth >= 730 && (
+              <div className="polaroid rotate-[4deg]">
+                <img src={a.mission_image_url || 'https://placehold.co/600x400?text=Mission'} alt="Mission" className="w-full h-auto object-cover" referrerPolicy="no-referrer" />
+              </div>
+            )}
+          </motion.div>
+        </div>
 
       </div>
     </div>

@@ -129,7 +129,7 @@ export default function Home() {
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><Mail className="text-white" size={24} /></div>
                 <h3 className="text-xl font-heading font-bold text-white mb-2">Email Us</h3>
                 <p className="text-white/80 text-sm mb-3">We reply within 24 hours on school days.</p>
-                <a href={'mailto:' + (settings.org_email || '')} className="text-white font-semibold hover:underline">{settings.org_email || 'hfhgc@dlsu.edu.ph'}</a>
+                <a href={'mailto:' + (settings.org_email || 'habitatforhumanitydlsu@gmail.com')} className="text-white font-semibold hover:underline">{settings.org_email || 'habitatforhumanitydlsu@gmail.com'}</a>
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-12 rounded-2xl scrapbook-shadow">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><MapPin className="text-white" size={24} /></div>
