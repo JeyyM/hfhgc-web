@@ -6,8 +6,8 @@ import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@hfhgc.org');
-  const [password, setPassword] = useState('xXGoodPassword_123&&Xx');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -195,16 +195,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Demo Credentials Info */}
-          <div className="mt-6 p-4 bg-[var(--color-green-1)] rounded-lg border-2 border-[var(--color-green-3)]">
-            <p className="text-xs text-[var(--color-text-main)] font-bold mb-1">
-              🔑 Demo Credentials (Pre-filled)
-            </p>
-            <p className="text-xs text-gray-600">
-              Email: <span className="font-mono">admin@hfhgc.org</span><br />
-              Password: <span className="font-mono">xXGoodPassword_123&&Xx</span>
-            </p>
-          </div>
         </motion.div>
 
         {/* Back to Home */}
