@@ -1,9 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
 import { Save, Plus, Trash2, GripVertical } from 'lucide-react';
 import { PageHeader, SectionCard, FormField, FieldDef } from '../components/AdminUI';
-import { useSettings, useFetch } from '../hooks/useSupabase';
+import { useFetch, useUpsert, useDelete } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
-import { supabase } from '../lib/supabase';
 
 const PLATFORMS = [
   { value: 'facebook', label: 'Facebook' },
@@ -22,72 +21,68 @@ const generalFields: FieldDef[] = [
   { key: 'org_address', label: 'Address' },
 ];
 
-interface SocialLink {
-  id: string;
-  platform: string;
-  url: string;
-  sort_order: number;
-}
-
 export default function AdminSettings() {
-  const { settings, loading, updateAll } = useSettings();
-  const { data: socialLinks, loading: socialLoading, refetch: refetchSocial } = useFetch<SocialLink>('social_links', {
-    order: { column: 'sort_order' },
-  });
+  // Fetch settings as rows (same pattern as AdminEditHome)
+  const { data: settingsRows, loading: sL, refetch: refetchSettings } = useFetch<any>('site_settings');
+  const { data: socialLinks, loading: socL, refetch: refetchSocial } = useFetch<any>('social_links', { order: { column: 'sort_order' } });
+  const { upsert: upsertSetting } = useUpsert('site_settings');
+  const { upsert: upsertSocial } = useUpsert('social_links');
+  const { remove: removeSocial } = useDelete('social_links');
+
   const [form, setForm] = useState<Record<string, string>>({});
-  const [socials, setSocials] = useState<SocialLink[]>([]);
+  const [settingsMap, setSettingsMap] = useState<Record<string, any>>({});
+  const [socials, setSocials] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
-  const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => { 
-    if (!loading && !initialized) { 
-      setForm({ ...settings }); 
-      setInitialized(true); 
-    } 
-  }, [loading, initialized]);
-  useEffect(() => { if (!socialLoading) setSocials([...socialLinks]); }, [socialLoading, socialLinks]);
+  // Build form from settings rows (same as AdminEditHome pattern with useEffect on data)
+  useEffect(() => {
+    const map: Record<string, any> = {};
+    const formData: Record<string, string> = {};
+    for (const row of settingsRows) {
+      map[row.key] = row;
+      formData[row.key] = row.value;
+    }
+    setSettingsMap(map);
+    setForm(formData);
+  }, [settingsRows]);
+
+  useEffect(() => { setSocials([...socialLinks]); }, [socialLinks]);
 
   const handleSave = async () => {
     setSaving(true);
     setMsg('');
-    
-    // Save general settings
-    console.log('Saving form data:', form);
-    const ok = await updateAll(form);
-    console.log('updateAll result:', ok);
-    if (!ok) { setMsg('Error saving settings.'); setSaving(false); return; }
-
-    // Save social links
-    for (let i = 0; i < socials.length; i++) {
-      const s = socials[i];
-      if (s.id.startsWith('new-')) {
-        const { data, error } = await supabase.from('social_links').insert({
-          platform: s.platform,
-          url: s.url,
-          sort_order: i,
-        }).select();
-        console.log('Insert social link:', s.platform, data, error);
-        if (error) { setMsg(`Error adding ${s.platform}: ${error.message}`); setSaving(false); return; }
-      } else {
-        const { data, error } = await supabase.from('social_links').update({
-          platform: s.platform,
-          url: s.url,
-          sort_order: i,
-        }).eq('id', s.id).select();
-        console.log('Update social link:', s.platform, data, error);
-        if (error) { setMsg(`Error updating ${s.platform}: ${error.message}`); setSaving(false); return; }
+    try {
+      // Save general settings using upsert (same pattern as AdminEditHome)
+      for (const field of generalFields) {
+        const existing = settingsMap[field.key];
+        const row = existing
+          ? { ...existing, value: form[field.key] || '' }
+          : { key: field.key, value: form[field.key] || '' };
+        await upsertSetting(row, 'key');
       }
-    }
 
-    setMsg('Settings saved!');
+      // Save social links using upsert
+      for (let i = 0; i < socials.length; i++) {
+        const s = socials[i];
+        const isNew = typeof s.id === 'string' && s.id.startsWith('new-');
+        const row = isNew
+          ? { platform: s.platform, url: s.url, sort_order: i }
+          : { id: s.id, platform: s.platform, url: s.url, sort_order: i };
+        await upsertSocial(row);
+      }
+
+      await Promise.all([refetchSettings(), refetchSocial()]);
+      setMsg('Settings saved!');
+    } catch {
+      setMsg('Error saving.');
+    }
     setSaving(false);
-    refetchSocial();
     setTimeout(() => setMsg(''), 3000);
   };
 
   const addSocialLink = () => {
-    const usedPlatforms = socials.map(s => s.platform);
+    const usedPlatforms = socials.map((s: any) => s.platform);
     const available = PLATFORMS.find(p => !usedPlatforms.includes(p.value));
     setSocials([...socials, {
       id: 'new-' + Date.now(),
@@ -97,21 +92,14 @@ export default function AdminSettings() {
     }]);
   };
 
-  const removeSocialLink = async (index: number) => {
+  const handleDeleteSocial = async (index: number) => {
     const link = socials[index];
     const label = PLATFORMS.find(p => p.value === link.platform)?.label || link.platform;
-    console.log('Delete clicked for:', label, link);
-    if (!window.confirm(`Remove ${label}? This action cannot be undone.`)) {
-      console.log('User cancelled delete');
-      return;
+    if (!window.confirm(`Remove ${label}? This action cannot be undone.`)) return;
+    if (link.id && !String(link.id).startsWith('new-')) {
+      await removeSocial(link.id);
     }
-    if (!link.id.startsWith('new-')) {
-      const { data, error } = await supabase.from('social_links').delete().eq('id', link.id).select();
-      console.log('Delete result:', data, error);
-    }
-    setSocials(socials.filter((_, i) => i !== index));
-    console.log('Removed from local state');
-    refetchSocial();
+    setSocials(prev => prev.filter((_, i) => i !== index));
   };
 
   const updateSocial = (index: number, field: 'platform' | 'url', value: string) => {
@@ -120,7 +108,7 @@ export default function AdminSettings() {
     setSocials(updated);
   };
 
-  if (loading || socialLoading) return <LoadingSpinner />;
+  if (sL || socL) return <LoadingSpinner />;
 
   return (
     <div>
@@ -161,7 +149,7 @@ export default function AdminSettings() {
                 placeholder="https://..."
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-green-5)]"
               />
-              <button onClick={() => removeSocialLink(i)} className="text-red-400 hover:text-red-600 transition-colors p-1">
+              <button onClick={() => handleDeleteSocial(i)} className="text-red-400 hover:text-red-600 transition-colors p-1">
                 <Trash2 size={18} />
               </button>
             </div>

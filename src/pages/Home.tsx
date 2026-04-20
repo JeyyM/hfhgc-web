@@ -97,8 +97,8 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">Our Impact</h2>
-            <p className="text-lg text-[var(--color-text-main)] max-w-2xl mx-auto">At Habitat for Humanity Green Chapter, every action helps build a lasting and sustainable impact. Together, through small steps, we can eliminate the cycle of poverty housing and make a difference.</p>
+            <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-4">{h.impact_title || 'Our Impact'}</h2>
+            <p className="text-lg text-[var(--color-text-main)] max-w-2xl mx-auto">{h.impact_subtitle || 'At Habitat for Humanity Green Chapter, every action helps build a lasting and sustainable impact. Together, through small steps, we can eliminate the cycle of poverty housing and make a difference.'}</p>
           </div>
           <div className={`grid ${windowWidth < 980 ? 'grid-cols-2' : 'grid-cols-3'} gap-6 max-w-4xl mx-auto`}>
             {stats.map((s: any, i: number) => {
@@ -119,8 +119,8 @@ export default function Home() {
       <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
-            <h2 className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-6">Get In Touch</h2>
-            <p className="text-xl text-[var(--color-text-main)] max-w-2xl mx-auto mb-10">Be part of the change! Reach out to volunteer or partner with us in building stronger communities.
+            <h2 className="text-5xl font-heading font-bold text-[var(--color-green-5)] mb-6">{h.contact_title || 'Get In Touch'}</h2>
+            <p className="text-xl text-[var(--color-text-main)] max-w-2xl mx-auto mb-10">{h.contact_subtitle || 'Be part of the change! Reach out to volunteer or partner with us in building stronger communities.'}
 </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/contact" className="inline-block bg-[var(--color-green-5)] text-white font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-4)] transition-all hover:scale-105 scrapbook-shadow text-lg">Contact Us</Link>

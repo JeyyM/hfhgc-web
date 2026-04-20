@@ -18,6 +18,16 @@ const heroFields: FieldDef[] = [
   { key: 'cta2_link', label: 'CTA 2 Link', half: true },
 ];
 
+const impactFields: FieldDef[] = [
+  { key: 'impact_title', label: 'Impact Section Title' },
+  { key: 'impact_subtitle', label: 'Impact Section Subtitle', type: 'textarea', rows: 3 },
+];
+
+const contactFields: FieldDef[] = [
+  { key: 'contact_title', label: 'Contact Section Title' },
+  { key: 'contact_subtitle', label: 'Contact Section Subtitle', type: 'textarea', rows: 3 },
+];
+
 const cardFields: FieldDef[] = [
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description', type: 'textarea', rows: 2 },
@@ -89,12 +99,20 @@ export default function AdminEditHome() {
           addLabel="Add Card" />
       </SectionCard>
 
+      <SectionCard title="Impact Section Text">
+        <DynamicForm fields={impactFields} data={heroForm} onChange={(k, v) => setHeroForm(prev => ({ ...prev, [k]: v }))} />
+      </SectionCard>
+
       <SectionCard title="Impact Stats">
         <ItemList items={statList} fields={statFields}
           onSave={(item, idx) => { const next = [...statList]; next[idx] = item; setStatList(next); }}
           onDelete={async (idx) => { if (statList[idx].id) await removeStat(statList[idx].id); setStatList(prev => prev.filter((_, i) => i !== idx)); }}
           onAdd={() => setStatList(prev => [...prev, { label: '', value: '', icon_name: 'Users', sort_order: prev.length + 1 }])}
           addLabel="Add Stat" />
+      </SectionCard>
+
+      <SectionCard title="Get In Touch Section Text">
+        <DynamicForm fields={contactFields} data={heroForm} onChange={(k, v) => setHeroForm(prev => ({ ...prev, [k]: v }))} />
       </SectionCard>
     </div>
   );

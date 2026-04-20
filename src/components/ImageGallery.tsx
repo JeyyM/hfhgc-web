@@ -203,6 +203,10 @@ export default function ImageGalleryModal({
           </div>
 
           {/* Search and Upload */}
+          <p className="text-sm text-gray-400 mb-2 text-center">
+            💡 For better performance, compress images before uploading with{' '}
+            <a href="https://squoosh.app/" target="_blank" rel="noreferrer" className="text-[var(--color-green-5)] underline hover:text-[var(--color-green-4)]">Squoosh</a>.
+          </p>
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />

@@ -69,6 +69,10 @@ CREATE TABLE home_hero (
   cta1_link       TEXT NOT NULL DEFAULT '/projects',
   cta2_label      TEXT NOT NULL DEFAULT 'Get Involved',
   cta2_link       TEXT NOT NULL DEFAULT '/contact',
+  impact_title    TEXT NOT NULL DEFAULT 'Our Impact',
+  impact_subtitle TEXT NOT NULL DEFAULT 'At Habitat for Humanity Green Chapter, every action helps build a lasting and sustainable impact. Together, through small steps, we can eliminate the cycle of poverty housing and make a difference.',
+  contact_title   TEXT NOT NULL DEFAULT 'Get In Touch',
+  contact_subtitle TEXT NOT NULL DEFAULT 'Be part of the change! Reach out to volunteer or partner with us in building stronger communities.',
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 
