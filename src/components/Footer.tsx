@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Twitter, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { useFetch } from '../hooks/useSupabase';
+import { SOCIAL_ICON_MAP, PLATFORM_LABELS, type SocialLink } from '../lib/socialIcons';
 
 export default function Footer() {
+  const { data: socialLinks } = useFetch<SocialLink>('social_links', { order: { column: 'sort_order' } });
+
   return (
     <footer className="bg-[var(--color-green-5)] text-white pt-10 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,15 +23,15 @@ export default function Footer() {
               Building homes, building hope.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-[var(--color-green-2)] transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-white hover:text-[var(--color-green-2)] transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-white hover:text-[var(--color-green-2)] transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
+              {socialLinks.map(link => {
+                const Icon = SOCIAL_ICON_MAP[link.platform];
+                if (!Icon) return null;
+                return (
+                  <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="text-white hover:text-[var(--color-green-2)] transition-colors" title={PLATFORM_LABELS[link.platform] || link.platform}>
+                    <Icon className="h-5 w-5" />
+                  </a>
+                );
+              })}
               <a href="mailto:habitatforhumanitydlsu@gmail.com" className="text-white hover:text-[var(--color-green-2)] transition-colors">
                 <Mail className="h-5 w-5" />
               </a>

@@ -297,44 +297,45 @@ export function useSettings() {
 
   const updateSetting = async (key: string, value: string) => {
     try {
-      // First, try to find if the setting exists
       const { data: existing, error: fetchError } = await supabase
         .from('site_settings')
-        .select('id')
+        .select('id, key, value')
         .eq('key', key)
         .maybeSingle();
 
+      console.log(`[${key}] lookup:`, existing, 'error:', fetchError);
+
       if (fetchError) {
-        console.error('Error checking existing setting:', fetchError);
+        console.error(`[${key}] lookup error:`, fetchError);
         return false;
       }
 
       if (existing) {
-        // Setting exists, update it
-        const { error: updateError } = await supabase
+        const { data: updated, error: updateError, status, statusText } = await supabase
           .from('site_settings')
           .update({ value })
-          .eq('key', key);
+          .eq('id', existing.id)
+          .select();
         
-        if (updateError) {
-          console.error('Error updating setting:', updateError);
+        console.log(`[${key}] update response:`, { data: updated, error: updateError, status, statusText });
+        if (updateError) return false;
+        if (!updated || updated.length === 0) {
+          console.warn(`[${key}] 0 rows updated — RLS blocking`);
           return false;
         }
       } else {
-        // Setting doesn't exist, insert it
-        const { error: insertError } = await supabase
+        const { data: inserted, error: insertError, status, statusText } = await supabase
           .from('site_settings')
-          .insert({ key, value });
+          .insert({ key, value })
+          .select();
         
-        if (insertError) {
-          console.error('Error inserting setting:', insertError);
-          return false;
-        }
+        console.log(`[${key}] insert response:`, { data: inserted, error: insertError, status, statusText });
+        if (insertError) return false;
       }
       
       return true;
     } catch (e) {
-      console.error('updateSetting exception:', e);
+      console.error(`[${key}] exception:`, e);
       return false;
     }
   };
@@ -343,7 +344,8 @@ export function useSettings() {
     try {
       const promises = Object.entries(pairs).map(([k, v]) => updateSetting(k, v));
       const results = await Promise.all(promises);
-      await refetch();
+      console.log('updateAll individual results:', results);
+      await refetch(true); // skip cache to get fresh data
       return results.every(Boolean);
     } catch (e) {
       console.error('updateAll error:', e);

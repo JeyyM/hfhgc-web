@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS projects CASCADE;
 DROP TABLE IF EXISTS blog_posts CASCADE;
 DROP TABLE IF EXISTS core_values CASCADE;
 DROP TABLE IF EXISTS about_page CASCADE;
+DROP TABLE IF EXISTS social_links CASCADE;
 DROP TABLE IF EXISTS impact_stats CASCADE;
 DROP TABLE IF EXISTS home_cards CASCADE;
 DROP TABLE IF EXISTS home_hero CASCADE;
@@ -46,11 +47,6 @@ INSERT INTO site_settings (key, value) VALUES
   ('org_email',       'hfhgc@dlsu.edu.ph'),
   ('org_phone',       '+63 912 345 6789'),
   ('org_address',     'De La Salle University, 2401 Taft Ave, Malate, Manila, 1004 Metro Manila'),
-  ('facebook_url',    'https://facebook.com/hfhgcdlsu'),
-  ('instagram_url',   ''),
-  ('twitter_url',     ''),
-  ('linkedin_url',    ''),
-  ('tiktok_url',      ''),
   ('partnerships_email', 'partnerships@hfhgc.org')
 ON CONFLICT (key) DO NOTHING;
 
@@ -111,6 +107,27 @@ INSERT INTO impact_stats (label, value, icon_name, sort_order) VALUES
   ('Families Helped',  '200+',   'Users',  1),
   ('Volunteers',       '1,500+', 'Heart',  2),
   ('Volunteer Hours',  '10K+',   'Home',   3)
+ON CONFLICT DO NOTHING;
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  2d. SOCIAL MEDIA LINKS                                                ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+
+CREATE TABLE social_links (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  platform    TEXT NOT NULL,          -- e.g. 'facebook', 'instagram', 'tiktok', 'linkedin', 'twitter', 'youtube'
+  url         TEXT NOT NULL,
+  sort_order  INT DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO social_links (platform, url, sort_order) VALUES
+  ('facebook',  'https://facebook.com/dlsu.hfhgc', 1),
+  ('instagram', 'https://instagram.com/habitatdlsu', 2),
+  ('tiktok',    'https://www.tiktok.com/@habitatdlsu', 3),
+  ('linkedin',  'https://linkedin.com/company/habitat-dlsu', 4)
 ON CONFLICT DO NOTHING;
 
 
@@ -188,14 +205,23 @@ CREATE TABLE blog_posts (
 CREATE TABLE projects (
   id                UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title             TEXT NOT NULL,
-  description       TEXT NOT NULL,
+  description       TEXT,
   category          TEXT NOT NULL DEFAULT 'Build',   -- Build, Workshop, Fundraiser, etc.
   status            TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'completed')),
   image_url         TEXT NOT NULL DEFAULT '',
 
+  -- Rich text / article fields
+  cover_image_url     TEXT DEFAULT '',
+  cover_image_caption TEXT DEFAULT '',
+  content_json        JSONB DEFAULT '[]'::jsonb,       -- TipTap JSON
+  excerpt             TEXT DEFAULT '',
+  author              TEXT DEFAULT '',
+  published_at        TIMESTAMPTZ,
+  tags                TEXT[] DEFAULT ARRAY[]::TEXT[],
+
   -- Upcoming-specific fields
-  event_date        DATE,                            -- for sorting / staleness
-  date_display      TEXT,                            -- human-readable, e.g. 'March 15-16, 2026'
+  event_date        DATE,
+  date_display      TEXT,
   time_display      TEXT,
   location          TEXT,
   participants      TEXT,
@@ -203,7 +229,7 @@ CREATE TABLE projects (
   registration_link TEXT,
 
   -- Completed-specific fields
-  completed_date    TEXT,                            -- e.g. 'March 2025'
+  completed_date    TEXT,
   blog_post_id      UUID REFERENCES blog_posts(id) ON DELETE SET NULL,
 
   sort_order        INT NOT NULL DEFAULT 0,
@@ -211,6 +237,10 @@ CREATE TABLE projects (
   created_at        TIMESTAMPTZ DEFAULT now(),
   updated_at        TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_published_at ON projects(published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_projects_category ON projects(category);
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -342,6 +372,7 @@ ALTER TABLE site_settings        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE home_hero            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE home_cards           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE impact_stats         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_links         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE about_page           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE core_values          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects             ENABLE ROW LEVEL SECURITY;
@@ -362,6 +393,7 @@ DROP POLICY IF EXISTS "Public read" ON site_settings;
 DROP POLICY IF EXISTS "Public read" ON home_hero;
 DROP POLICY IF EXISTS "Public read" ON home_cards;
 DROP POLICY IF EXISTS "Public read" ON impact_stats;
+DROP POLICY IF EXISTS "Public read" ON social_links;
 DROP POLICY IF EXISTS "Public read" ON about_page;
 DROP POLICY IF EXISTS "Public read" ON core_values;
 DROP POLICY IF EXISTS "Public read" ON projects;
@@ -374,9 +406,14 @@ DROP POLICY IF EXISTS "Public read" ON partner_testimonials;
 DROP POLICY IF EXISTS "Public read" ON partnership_benefits;
 DROP POLICY IF EXISTS "Anyone can submit" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON site_settings;
+DROP POLICY IF EXISTS "Admin update" ON site_settings;
+DROP POLICY IF EXISTS "Admin insert" ON site_settings;
+DROP POLICY IF EXISTS "Admin delete" ON site_settings;
 DROP POLICY IF EXISTS "Admin full access" ON home_hero;
 DROP POLICY IF EXISTS "Admin full access" ON home_cards;
 DROP POLICY IF EXISTS "Admin full access" ON impact_stats;
+DROP POLICY IF EXISTS "Admin full access" ON social_links;
+DROP POLICY IF EXISTS "Admin delete" ON social_links;
 DROP POLICY IF EXISTS "Admin full access" ON about_page;
 DROP POLICY IF EXISTS "Admin full access" ON core_values;
 DROP POLICY IF EXISTS "Admin full access" ON projects;
@@ -398,6 +435,7 @@ CREATE POLICY "Public read" ON site_settings        FOR SELECT USING (true);
 CREATE POLICY "Public read" ON home_hero            FOR SELECT USING (true);
 CREATE POLICY "Public read" ON home_cards           FOR SELECT USING (true);
 CREATE POLICY "Public read" ON impact_stats         FOR SELECT USING (true);
+CREATE POLICY "Public read" ON social_links         FOR SELECT USING (true);
 CREATE POLICY "Public read" ON about_page           FOR SELECT USING (true);
 CREATE POLICY "Public read" ON core_values          FOR SELECT USING (true);
 CREATE POLICY "Public read" ON projects             FOR SELECT USING (is_visible = true);
@@ -425,9 +463,14 @@ $$ LANGUAGE sql SECURITY DEFINER;
 
 -- Admin full access on every content table
 CREATE POLICY "Admin full access" ON site_settings        FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin update"      ON site_settings        FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin insert"      ON site_settings        FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "Admin delete"      ON site_settings        FOR DELETE USING (is_admin());
 CREATE POLICY "Admin full access" ON home_hero            FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON home_cards           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON impact_stats         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON social_links         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin delete"      ON social_links         FOR DELETE USING (is_admin());
 CREATE POLICY "Admin full access" ON about_page           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON core_values          FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON projects             FOR ALL USING (is_admin()) WITH CHECK (is_admin());
@@ -477,7 +520,7 @@ DECLARE
   tbl TEXT;
 BEGIN
   FOREACH tbl IN ARRAY ARRAY[
-    'site_settings', 'home_hero', 'home_cards', 'impact_stats',
+    'site_settings', 'home_hero', 'home_cards', 'impact_stats', 'social_links',
     'about_page', 'core_values',
     'projects', 'blog_posts', 'testimonials', 'announcements', 'faqs',
     'partners', 'partner_testimonials', 'partnership_benefits'
