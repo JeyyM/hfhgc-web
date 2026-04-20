@@ -18,7 +18,7 @@ export default function About() {
 
   if (aL || vL) return <LoadingSpinner />;
   const a = about || ({} as any);
-  const colors = ['bg-[var(--color-green-4)]', 'bg-[var(--color-green-2)]', 'bg-[var(--color-green-3)]', 'bg-[var(--color-green-3)]'];
+  const colors = ['bg-[var(--color-green-5)]', 'bg-[var(--color-green-5)]', 'bg-[var(--color-green-5)]', 'bg-[var(--color-green-5)]'];
 
   return (
     <div className="bg-[var(--color-bg-main)] page-grid min-h-screen py-16">

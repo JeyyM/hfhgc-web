@@ -19,7 +19,7 @@ import type { LucideIcon } from 'lucide-react';
 import ImageGalleryModal from './ImageGallery';
 
 /* ─── Lucide Icons Map for Icon Picker ─── */
-const LUCIDE_ICONS: Record<string, LucideIcon> = {
+export const LUCIDE_ICONS: Record<string, LucideIcon> = {
   // People & Community
   'Users': Users, 'Users2': Users2, 'UserCheck': UserCheck, 'UserPlus': UserPlus, 
   'Contact': Contact, 'Baby': Baby, 'Smile': Smile, 'Heart': Heart,
