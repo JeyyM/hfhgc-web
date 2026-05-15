@@ -2,22 +2,14 @@
 import { motion } from 'motion/react';
 import { Send, Mail, MapPin, Phone } from 'lucide-react';
 import emailjs from '@emailjs/browser';
-import { useInsert, useSettings } from '../hooks/useSupabase';
+import { useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 import SEO from '../components/SEO';
 
-// ── EmailJS configuration ──
-// 1. Go to https://www.emailjs.com/ and sign up (free)
-// 2. Add an Email Service (Gmail) → you'll get a SERVICE_ID
-// 3. Create an Email Template with variables: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
-// 4. Copy your Public Key from Account → General
-const EMAILJS_SERVICE_ID = 'service_6qvx0xp';
-const EMAILJS_TEMPLATE_ID = 'template_emq3pfe';
-const EMAILJS_PUBLIC_KEY = 'TTjL641mYEK-Q_Ugv';
+// EmailJS: set VITE_EMAILJS_* in .env.local (see .env.example). Restrict origins in the EmailJS dashboard.
 
 export default function Contact() {
   const { settings, loading: sL } = useSettings();
-  const { insert } = useInsert<any>('contact_submissions');
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -31,21 +23,26 @@ export default function Contact() {
     setError('');
 
     try {
-      // Send email via EmailJS
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID?.trim();
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID?.trim();
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY?.trim();
+
+      if (!serviceId || !templateId || !publicKey) {
+        setError('Contact email is not configured. Please reach us using the email or address shown on the left.');
+        return;
+      }
+
       await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
+        serviceId,
+        templateId,
         {
           from_name: form.name,
           from_email: form.email,
           subject: form.subject,
           message: form.message,
         },
-        EMAILJS_PUBLIC_KEY
+        { publicKey },
       );
-
-      // Also save to Supabase as backup
-      await insert(form);
 
       setSent(true);
       setForm({ name: '', email: '', subject: '', message: '' });
