@@ -7,6 +7,7 @@
 -- ============================================================================
 
 -- Drop all tables first (in reverse dependency order)
+DROP TABLE IF EXISTS contact_submit_rate CASCADE;
 DROP TABLE IF EXISTS contact_submissions CASCADE;
 DROP TABLE IF EXISTS admin_profiles CASCADE;
 DROP TABLE IF EXISTS partnership_package_items CASCADE;
@@ -448,8 +449,22 @@ CREATE TABLE contact_submissions (
   subject    TEXT NOT NULL,
   message    TEXT NOT NULL,
   is_read    BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMPTZ DEFAULT now(),
+  CONSTRAINT contact_name_len CHECK (char_length(trim(name)) BETWEEN 1 AND 200),
+  CONSTRAINT contact_email_len CHECK (char_length(trim(email)) BETWEEN 3 AND 254),
+  CONSTRAINT contact_subject_len CHECK (char_length(trim(subject)) BETWEEN 1 AND 500),
+  CONSTRAINT contact_message_len CHECK (char_length(trim(message)) BETWEEN 1 AND 8000)
 );
+
+-- Edge Function rate limiting (writes only via service_role — no public ACL)
+CREATE TABLE contact_submit_rate (
+  fingerprint       TEXT PRIMARY KEY,
+  last_submit_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE contact_submit_rate ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON contact_submit_rate FROM PUBLIC;
+GRANT ALL ON contact_submit_rate TO service_role;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -501,6 +516,7 @@ ALTER TABLE partnership_why_items     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partnership_packages       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partnership_package_items  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_submissions    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_submit_rate     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles         ENABLE ROW LEVEL SECURITY;
 
 -- ── Public read policies (anonymous + authenticated) ──────────────────────
@@ -521,7 +537,6 @@ DROP POLICY IF EXISTS "Public read" ON faqs;
 DROP POLICY IF EXISTS "Public read" ON partners;
 DROP POLICY IF EXISTS "Public read" ON partner_testimonials;
 DROP POLICY IF EXISTS "Public read" ON partnership_benefits;
-DROP POLICY IF EXISTS "Anyone can submit" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON site_settings;
 DROP POLICY IF EXISTS "Admin update" ON site_settings;
 DROP POLICY IF EXISTS "Admin insert" ON site_settings;
@@ -551,6 +566,7 @@ DROP POLICY IF EXISTS "Admin full access" ON featured_communities;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_why_items;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_packages;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_package_items;
+DROP POLICY IF EXISTS "Anyone can submit" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON admin_profiles;
 DROP POLICY IF EXISTS "Admin upload" ON storage.objects;
@@ -581,30 +597,33 @@ CREATE POLICY "Public read" ON partnership_package_items FOR SELECT USING (
   EXISTS (SELECT 1 FROM partnership_packages p WHERE p.id = package_id AND p.is_visible = true)
 );
 
--- Contact submissions — anyone can INSERT
-CREATE POLICY "Anyone can submit" ON contact_submissions FOR INSERT WITH CHECK (true);
+-- Contact submissions: INSERT only from Edge Functions (service_role). No anon INSERT.
 
 -- ── Admin write policies (authenticated admins only) ──────────────────────
 
--- Helper: check if the current user is an admin
+-- Helper: check if the current user is an admin (SECURITY DEFINER — fixed search_path, explicit schema)
 CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
   SELECT EXISTS (
-    SELECT 1 FROM admin_profiles
+    SELECT 1 FROM public.admin_profiles
     WHERE id = auth.uid()
   );
-$$ LANGUAGE sql SECURITY DEFINER;
+$$;
+
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 -- Admin full access on every content table
 CREATE POLICY "Admin full access" ON site_settings        FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin update"      ON site_settings        FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin insert"      ON site_settings        FOR INSERT WITH CHECK (is_admin());
-CREATE POLICY "Admin delete"      ON site_settings        FOR DELETE USING (is_admin());
 CREATE POLICY "Admin full access" ON home_hero            FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON home_cards           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON impact_stats         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON social_links         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin delete"      ON social_links         FOR DELETE USING (is_admin());
 CREATE POLICY "Admin full access" ON about_page           FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON core_values          FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON projects             FOR ALL USING (is_admin()) WITH CHECK (is_admin());

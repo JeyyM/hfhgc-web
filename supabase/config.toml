@@ -1,0 +1,5 @@
+# Local / deploy reference. Link with: supabase link --project-ref <ref>
+# Contact form is public (no JWT): verify_jwt off for submit-contact.
+
+[functions.submit-contact]
+verify_jwt = false

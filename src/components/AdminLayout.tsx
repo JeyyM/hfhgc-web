@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '../lib/supabase';
+import {
+  supabase,
+  migrateLegacySessionDeadline,
+  isSessionDeadlineExpired,
+  clearSessionDeadline,
+  setAuthPersistence,
+} from '../lib/supabase';
 import {
   LayoutDashboard,
   Home,
@@ -48,6 +54,15 @@ export default function AdminLayout() {
         return;
       }
 
+      migrateLegacySessionDeadline();
+      if (isSessionDeadlineExpired()) {
+        await supabase.auth.signOut();
+        clearSessionDeadline();
+        localStorage.removeItem('hfhgc_admin_email');
+        navigate('/login');
+        return;
+      }
+
       // Verify admin privileges
       const { data: adminProfile, error: adminError } = await supabase
         .from('admin_profiles')
@@ -57,6 +72,7 @@ export default function AdminLayout() {
 
       if (adminError || !adminProfile) {
         await supabase.auth.signOut();
+        clearSessionDeadline();
         navigate('/login');
         return;
       }
@@ -74,6 +90,8 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('hfhgc_admin_email');
+    clearSessionDeadline();
+    setAuthPersistence(false);
     navigate('/login');
   };
 

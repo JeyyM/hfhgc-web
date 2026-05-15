@@ -1,16 +1,49 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import {
+  supabase,
+  setAuthPersistence,
+  clearAllSupabaseAuthStorage,
+  clearSessionDeadline,
+  setSessionDeadlineFromNow,
+  migrateLegacySessionDeadline,
+  isSessionDeadlineExpired,
+} from '../lib/supabase';
+
+// TODO(remove): dev login prefill — delete this block (and .env keys) before production
+const DEV_LOGIN_EMAIL = 'admin@hfhgc.org';
+const DEV_LOGIN_PASSWORD = 'xXGoodPassword_123&&Xx';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(DEV_LOGIN_EMAIL);
+  const [password, setPassword] = useState(
+    () => import.meta.env.VITE_DEV_LOGIN_PASSWORD ?? DEV_LOGIN_PASSWORD,
+  );
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled || !session) return;
+      migrateLegacySessionDeadline();
+      if (isSessionDeadlineExpired()) {
+        await supabase.auth.signOut();
+        clearSessionDeadline();
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -18,6 +51,10 @@ export default function Login() {
     setError('');
 
     try {
+      setAuthPersistence(rememberMe);
+      clearAllSupabaseAuthStorage();
+      clearSessionDeadline();
+
       // Sign in with Supabase
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -43,12 +80,15 @@ export default function Login() {
         if (!adminProfile) {
           // User is not an admin
           await supabase.auth.signOut();
+          clearSessionDeadline();
           setError('Access denied. This account does not have admin privileges.');
           setIsLoading(false);
           return;
         }
 
-        // Store auth info (optional, Supabase handles session automatically)
+        setSessionDeadlineFromNow();
+
+        // Store auth info (optional; display helper only — real session is Supabase tokens)
         localStorage.setItem('hfhgc_admin_email', email);
         
         // Navigate to admin dashboard
@@ -116,6 +156,7 @@ export default function Login() {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -138,6 +179,7 @@ export default function Login() {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -161,10 +203,12 @@ export default function Login() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-[var(--color-green-5)] focus:ring-[var(--color-green-5)] border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-[var(--color-text-main)]">
-                  Remember me
+                  Remember this device
                 </label>
               </div>
 
