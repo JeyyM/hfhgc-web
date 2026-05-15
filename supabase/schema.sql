@@ -9,6 +9,7 @@
 -- Drop all tables first (in reverse dependency order)
 DROP TABLE IF EXISTS contact_submissions CASCADE;
 DROP TABLE IF EXISTS admin_profiles CASCADE;
+DROP TABLE IF EXISTS partnership_package_items CASCADE;
 DROP TABLE IF EXISTS partnership_packages CASCADE;
 DROP TABLE IF EXISTS partnership_why_items CASCADE;
 DROP TABLE IF EXISTS featured_community_stats CASCADE;
@@ -51,7 +52,9 @@ INSERT INTO site_settings (key, value) VALUES
   ('org_email',       'hfhgc@dlsu.edu.ph'),
   ('org_phone',       '+63 912 345 6789'),
   ('org_address',     'De La Salle University, 2401 Taft Ave, Malate, Manila, 1004 Metro Manila'),
-  ('partnerships_email', 'partnerships@hfhgc.org')
+  ('partnerships_email',              'partnerships@hfhgc.org'),
+  ('partnerships_why_image_url',      ''),
+  ('partnerships_why_image_caption',  'Building partnerships, building hope')
 ON CONFLICT (key) DO NOTHING;
 
 
@@ -384,26 +387,55 @@ INSERT INTO partnership_why_items (icon_name, text, sort_order) VALUES
   ('Users',     'Gain a wider reach of over 600 Legacy Builders', 2)
 ON CONFLICT DO NOTHING;
 
--- 8d. Partnership package tiers (Gold / Silver / Bronze)
+-- 8d. Partnership package tiers (Gold / Silver / Bronze) — line items live in partnership_package_items
 CREATE TABLE partnership_packages (
-  id                        UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  tier_name                 TEXT NOT NULL,
-  tier_emoji                TEXT NOT NULL DEFAULT '🏆',
-  followers_count           INT NOT NULL DEFAULT 0,
-  publicity_materials_count INT NOT NULL DEFAULT 0,
-  has_report                BOOLEAN NOT NULL DEFAULT true,
-  sort_order                INT NOT NULL DEFAULT 0,
-  is_visible                BOOLEAN NOT NULL DEFAULT true,
-  updated_at                TIMESTAMPTZ DEFAULT now()
+  id                UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tier_name         TEXT NOT NULL,
+  tier_emoji        TEXT NOT NULL DEFAULT '🏆',
+  is_most_popular   BOOLEAN NOT NULL DEFAULT false,
+  sort_order        INT NOT NULL DEFAULT 0,
+  is_visible        BOOLEAN NOT NULL DEFAULT true,
+  updated_at        TIMESTAMPTZ DEFAULT now()
 );
 
-INSERT INTO partnership_packages (tier_name, tier_emoji, followers_count, publicity_materials_count, has_report, sort_order) VALUES
-  ('Gold',   '🥇', 15, 3, true, 0),
-  ('Silver', '🥈', 10, 2, true, 1),
-  ('Bronze', '🥉',  8, 1, true, 2)
-ON CONFLICT DO NOTHING;
+INSERT INTO partnership_packages (tier_name, tier_emoji, is_most_popular, sort_order, is_visible) VALUES
+  ('Gold',   '🥇', true,  0, true),
+  ('Silver', '🥈', false, 1, true),
+  ('Bronze', '🥉', false, 2, true);
 
+-- Per-tier rows: heading + subtext, either a text value or a checkbox (✓ / ✕)
+CREATE TABLE partnership_package_items (
+  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  package_id    UUID NOT NULL REFERENCES partnership_packages(id) ON DELETE CASCADE,
+  sort_order    INT NOT NULL DEFAULT 0,
+  title         TEXT NOT NULL DEFAULT '',
+  subtext       TEXT NOT NULL DEFAULT '',
+  display_type  TEXT NOT NULL DEFAULT 'text' CHECK (display_type IN ('text', 'checkbox')),
+  text_value    TEXT NOT NULL DEFAULT '',
+  is_included   BOOLEAN NOT NULL DEFAULT false,
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
 
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 0, 'Social Media Followers', 'FB or IG page follows', 'text', '15', false FROM partnership_packages WHERE tier_name = 'Gold';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 1, 'Publicity Materials', 'Likes & shares on chosen posts', 'text', '3', false FROM partnership_packages WHERE tier_name = 'Gold';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 2, 'Post-Activity Report', 'Provided upon request', 'checkbox', '', true FROM partnership_packages WHERE tier_name = 'Gold';
+
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 0, 'Social Media Followers', 'FB or IG page follows', 'text', '10', false FROM partnership_packages WHERE tier_name = 'Silver';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 1, 'Publicity Materials', 'Likes & shares on chosen posts', 'text', '2', false FROM partnership_packages WHERE tier_name = 'Silver';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 2, 'Post-Activity Report', 'Provided upon request', 'checkbox', '', true FROM partnership_packages WHERE tier_name = 'Silver';
+
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 0, 'Social Media Followers', 'FB or IG page follows', 'text', '8', false FROM partnership_packages WHERE tier_name = 'Bronze';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 1, 'Publicity Materials', 'Likes & shares on chosen posts', 'text', '1', false FROM partnership_packages WHERE tier_name = 'Bronze';
+INSERT INTO partnership_package_items (package_id, sort_order, title, subtext, display_type, text_value, is_included)
+SELECT id, 2, 'Post-Activity Report', 'Provided upon request', 'checkbox', '', true FROM partnership_packages WHERE tier_name = 'Bronze';
 -- ╔══════════════════════════════════════════════════════════════════════════╗
 -- ║  9. CONTACT PAGE                                                       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
@@ -466,7 +498,8 @@ ALTER TABLE partnership_benefits   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE featured_communities      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE featured_community_stats  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partnership_why_items     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE partnership_packages   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_packages       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_package_items  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_submissions    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles         ENABLE ROW LEVEL SECURITY;
 
@@ -513,9 +546,11 @@ DROP POLICY IF EXISTS "Public read" ON featured_community_stats;
 DROP POLICY IF EXISTS "Admin full access" ON featured_community_stats;
 DROP POLICY IF EXISTS "Public read" ON partnership_why_items;
 DROP POLICY IF EXISTS "Public read" ON partnership_packages;
+DROP POLICY IF EXISTS "Public read" ON partnership_package_items;
 DROP POLICY IF EXISTS "Admin full access" ON featured_communities;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_why_items;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_packages;
+DROP POLICY IF EXISTS "Admin full access" ON partnership_package_items;
 DROP POLICY IF EXISTS "Admin full access" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON admin_profiles;
 DROP POLICY IF EXISTS "Admin upload" ON storage.objects;
@@ -542,6 +577,9 @@ CREATE POLICY "Public read" ON featured_communities      FOR SELECT USING (is_vi
 CREATE POLICY "Public read" ON featured_community_stats  FOR SELECT USING (true);
 CREATE POLICY "Public read" ON partnership_why_items     FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON partnership_packages   FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partnership_package_items FOR SELECT USING (
+  EXISTS (SELECT 1 FROM partnership_packages p WHERE p.id = package_id AND p.is_visible = true)
+);
 
 -- Contact submissions — anyone can INSERT
 CREATE POLICY "Anyone can submit" ON contact_submissions FOR INSERT WITH CHECK (true);
@@ -581,6 +619,7 @@ CREATE POLICY "Admin full access" ON featured_communities      FOR ALL USING (is
 CREATE POLICY "Admin full access" ON featured_community_stats  FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON partnership_why_items     FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON partnership_packages   FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partnership_package_items FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON contact_submissions    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON admin_profiles         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 
@@ -624,7 +663,7 @@ BEGIN
     'about_page', 'core_values',
     'projects', 'blog_posts', 'testimonials', 'announcements', 'faqs',
     'partners', 'partner_testimonials', 'partnership_benefits',
-    'featured_communities', 'featured_community_stats', 'partnership_why_items', 'partnership_packages'
+    'featured_communities', 'featured_community_stats', 'partnership_why_items', 'partnership_packages', 'partnership_package_items'
   ] LOOP
     EXECUTE format(
       'CREATE TRIGGER set_updated_at BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION update_updated_at();',

@@ -1,8 +1,8 @@
 ﻿import { motion } from 'motion/react';
-import { useState, useEffect } from 'react';
-import { ExternalLink, Heart, Building, Users, Handshake, Globe, Quote, Check, Home as HomeIcon } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ExternalLink, Heart, Building, Users, Handshake, Globe, Quote, Check, X, Home as HomeIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useFetch } from '../hooks/useSupabase';
+import { useFetch, useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 import SEO from '../components/SEO';
 import { LUCIDE_ICONS } from '../components/AdminUI';
@@ -16,15 +16,34 @@ export default function Partnerships() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const { settings } = useSettings();
+
   const { data: communities,    loading: coL } = useFetch<any>('featured_communities',    { order: { column: 'sort_order' } });
   const { data: communityStats, loading: csL } = useFetch<any>('featured_community_stats', { order: { column: 'sort_order' } });
   const { data: whyItems,     loading: wL  } = useFetch<any>('partnership_why_items', { order: { column: 'sort_order' } });
   const { data: packages,     loading: pkL } = useFetch<any>('partnership_packages',  { order: { column: 'sort_order' } });
+  const { data: packageLineItems, loading: pkiL } = useFetch<any>('partnership_package_items', { order: { column: 'sort_order' } });
   const { data: partners,     loading: pL  } = useFetch<any>('partners',              { order: { column: 'sort_order' } });
   const { data: testimonials, loading: tL  } = useFetch<any>('partner_testimonials',  { order: { column: 'sort_order' } });
   const { data: stats,        loading: sL  } = useFetch<any>('impact_stats',          { order: { column: 'sort_order' } });
 
-  if (coL || csL || wL || pkL || pL || tL || sL) return <LoadingSpinner />;
+  const packageItemsByPkg = useMemo(() => {
+    const map = new Map<string, any[]>();
+    for (const it of packageLineItems) {
+      const pid = it.package_id as string;
+      if (!pid) continue;
+      if (!map.has(pid)) map.set(pid, []);
+      map.get(pid)!.push(it);
+    }
+    for (const rows of map.values()) {
+      rows.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
+    return map;
+  }, [packageLineItems]);
+
+  const iconMap: Record<string, any> = { Heart, Building, Users, Handshake, Globe };
+
+  if (coL || csL || wL || pkL || pkiL || pL || tL || sL) return <LoadingSpinner />;
 
   const visibleCommunities = communities.filter((c: any) => c.is_visible !== false);
   const visibleWhyItems    = whyItems.filter((w: any) => w.is_visible !== false);
@@ -35,8 +54,6 @@ export default function Partnerships() {
   const partnershipStats   = stats.filter((s: any) =>
     s.label === '12+' || s.label === '₱3.2M' || s.label === '80+' || s.label === '6'
   );
-
-  const iconMap: Record<string, any> = { Heart, Building, Users, Handshake, Globe };
 
   return (
     <div className="bg-[var(--color-bg-main)] min-h-screen">
@@ -51,75 +68,93 @@ export default function Partnerships() {
       </section>
 
       {/* ── Featured Communities ── */}
-      {visibleCommunities.map((community: any, cIdx: number) => (
-        <section key={community.id} className={`py-20 ${cIdx % 2 === 0 ? 'bg-white' : 'bg-[var(--color-bg-main)]'}`}>
+      {visibleCommunities.length > 0 && (
+        <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
+
+            {/* Shared heading */}
+            <div className="text-center mb-16">
               <span className="inline-block bg-[var(--color-green-1)] text-[var(--color-green-5)] font-bold text-sm px-4 py-1.5 rounded-full mb-4 uppercase tracking-wide">
-                Featured Community
+                Featured {visibleCommunities.length === 1 ? 'Community' : 'Communities'}
               </span>
-              <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)]">{community.name}</h2>
+              <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)]">
+                Communities We've Partnered With
+              </h2>
             </div>
 
-            <div className={`grid ${windowWidth < 900 ? 'grid-cols-1' : 'grid-cols-2'} gap-12 items-center`}>
-              {/* Text — alternate side per community */}
-              <motion.div
-                initial={{ opacity: 0, x: cIdx % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-                className={cIdx % 2 !== 0 && windowWidth >= 900 ? 'order-2' : ''}
-              >
-                <p className="text-[var(--color-text-main)] text-lg leading-relaxed mb-8 whitespace-pre-line">
-                  {community.description}
-                </p>
-                {(() => {
-                  const chips = communityStats.filter((s: any) => s.community_name === community.name);
-                  if (chips.length === 0) return null;
-                  return (
-                    <div className="flex flex-wrap gap-4">
-                      {chips.map((chip: any) => {
-                        const Icon = LUCIDE_ICONS[chip.icon_name] || HomeIcon;
-                        return (
-                          <div key={chip.id} className="flex items-center gap-4 bg-white border-2 border-[var(--color-green-3)] rounded-2xl px-6 py-4 scrapbook-shadow min-w-[180px]">
-                            <div className="w-12 h-12 rounded-full bg-[var(--color-green-5)] flex items-center justify-center flex-shrink-0">
-                              <Icon size={22} className="text-white" />
-                            </div>
-                            <div>
-                              <p className="text-3xl font-heading font-bold text-[var(--color-green-5)] leading-none">{chip.value}</p>
-                              <p className="text-xs font-semibold text-gray-600 mt-1 uppercase tracking-wide">{chip.label}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </motion.div>
+            {/* Alternating rows */}
+            <div className="space-y-20">
+              {visibleCommunities.map((community: any, cIdx: number) => {
+                const isEven = cIdx % 2 === 0;
+                const chips  = communityStats.filter((s: any) => s.community_name === community.name);
+                return (
+                  <div key={community.id}>
+                    <div className={`flex flex-col ${windowWidth >= 900 ? (isEven ? 'md:flex-row' : 'md:flex-row-reverse') : ''} gap-12 items-center`}>
 
-              {/* Polaroid image */}
-              <motion.div
-                initial={{ opacity: 0, x: cIdx % 2 === 0 ? 20 : -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-                className={`flex justify-center ${cIdx % 2 !== 0 && windowWidth >= 900 ? 'order-1' : ''}`}
-              >
-                <div className={`polaroid ${cIdx % 2 === 0 ? 'rotate-2' : '-rotate-2'} max-w-lg w-full`}>
-                  <img
-                    src={community.image_url || `https://placehold.co/600x420?text=${encodeURIComponent(community.name)}`}
-                    alt={community.name}
-                    className="w-full h-auto object-cover rounded-sm"
-                  />
-                  {community.image_caption && (
-                    <p className="font-heading text-center mt-4 text-lg text-[var(--color-text-main)]">{community.image_caption}</p>
-                  )}
-                </div>
-              </motion.div>
+                      {/* Polaroid image */}
+                      <motion.div
+                        initial={{ opacity: 0, x: isEven ? -24 : 24 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        viewport={{ once: true }}
+                        className="flex justify-center w-full md:w-1/2 flex-shrink-0"
+                      >
+                        <div className={`polaroid ${isEven ? 'rotate-2' : '-rotate-2'} max-w-lg w-full`}>
+                          <img
+                            src={community.image_url || `https://placehold.co/600x420?text=${encodeURIComponent(community.name)}`}
+                            alt={community.name}
+                            className="w-full h-auto object-cover rounded-sm"
+                          />
+                          {community.image_caption && (
+                            <p className="font-heading text-center mt-4 text-lg text-[var(--color-text-main)]">{community.image_caption}</p>
+                          )}
+                        </div>
+                      </motion.div>
+
+                      {/* Text + stats */}
+                      <motion.div
+                        initial={{ opacity: 0, x: isEven ? 24 : -24 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        viewport={{ once: true }}
+                        className="w-full md:w-1/2"
+                      >
+                        <h3 className="text-3xl font-heading font-bold text-[var(--color-green-5)] mb-4">{community.name}</h3>
+                        <p className="text-[var(--color-text-main)] text-lg leading-relaxed mb-8 whitespace-pre-line">
+                          {community.description}
+                        </p>
+                        {chips.length > 0 && (
+                          <div className="flex flex-wrap gap-3">
+                            {chips.map((chip: any) => {
+                              const Icon = LUCIDE_ICONS[chip.icon_name] || HomeIcon;
+                              return (
+                                <div key={chip.id} className="flex items-center gap-3 bg-white border-2 border-[var(--color-green-3)] rounded-xl px-4 py-3 scrapbook-shadow">
+                                  <div className="w-9 h-9 rounded-full bg-[var(--color-green-5)] flex items-center justify-center flex-shrink-0">
+                                    <Icon size={17} className="text-white" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xl font-heading font-bold text-[var(--color-green-5)] leading-none">{chip.value}</p>
+                                    <p className="text-[11px] font-semibold text-gray-500 mt-0.5 uppercase tracking-wide">{chip.label}</p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </motion.div>
+                    </div>
+
+                    {/* Divider between communities */}
+                    {cIdx < visibleCommunities.length - 1 && (
+                      <div className="mt-20 border-t-2 border-dashed border-[var(--color-green-3)]" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
-      ))}
+      )}
 
       {/* ── Why Partner With Us ── */}
       {visibleWhyItems.length > 0 && (
@@ -136,11 +171,13 @@ export default function Partnerships() {
               >
                 <div className="polaroid -rotate-2 max-w-lg w-full">
                   <img
-                    src="https://placehold.co/600x420?text=HFHGC+Partnership"
+                    src={settings.partnerships_why_image_url || 'https://placehold.co/600x420?text=HFHGC+Partnership'}
                     alt="HFHGC Partnership"
                     className="w-full h-auto object-cover rounded-sm"
                   />
-                  <p className="font-heading text-center mt-4 text-lg text-[var(--color-text-main)]">Building partnerships, building hope</p>
+                  <p className="font-heading text-center mt-4 text-lg text-[var(--color-text-main)]">
+                    {settings.partnerships_why_image_caption || 'Building partnerships, building hope'}
+                  </p>
                 </div>
               </motion.div>
 
@@ -165,12 +202,12 @@ export default function Partnerships() {
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.12, duration: 0.5 }}
                         viewport={{ once: true }}
-                        className="flex items-start gap-4 bg-white border-2 border-[var(--color-green-3)] rounded-2xl p-5 scrapbook-shadow"
+                        className="flex items-center gap-4 bg-white border-2 border-[var(--color-green-3)] rounded-2xl p-5 scrapbook-shadow"
                       >
-                        <div className="flex-shrink-0 w-11 h-11 rounded-full bg-[var(--color-green-1)] flex items-center justify-center mt-0.5">
+                        <div className="flex-shrink-0 w-11 h-11 rounded-full bg-[var(--color-green-1)] flex items-center justify-center">
                           <Icon className="text-[var(--color-green-5)]" size={22} />
                         </div>
-                        <p className="text-[var(--color-text-main)] font-medium text-base leading-snug pt-1.5">{item.text}</p>
+                        <p className="text-[var(--color-text-main)] font-medium text-base leading-snug min-w-0 flex-1">{item.text}</p>
                       </motion.li>
                     );
                   })}
@@ -200,8 +237,6 @@ export default function Partnerships() {
                   border:     'border-amber-400',
                   statBg:     'bg-amber-50',
                   statText:   'text-amber-700',
-                  badge:      true,
-                  lift:       true,
                 },
                 {
                   headerBg:   'bg-gray-300',
@@ -209,8 +244,6 @@ export default function Partnerships() {
                   border:     'border-gray-300',
                   statBg:     'bg-gray-50',
                   statText:   'text-gray-600',
-                  badge:      false,
-                  lift:       false,
                 },
                 {
                   headerBg:   'bg-orange-300',
@@ -218,15 +251,15 @@ export default function Partnerships() {
                   border:     'border-orange-400',
                   statBg:     'bg-orange-50',
                   statText:   'text-orange-700',
-                  badge:      false,
-                  lift:       false,
                 },
               ];
 
               return (
-                <div className={`grid ${windowWidth < 640 ? 'grid-cols-1' : 'grid-cols-3'} gap-6 items-center`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
                   {visiblePackages.map((pkg: any, pIdx: number) => {
                     const s = tierStyles[pIdx] ?? tierStyles[tierStyles.length - 1];
+                    const lines = packageItemsByPkg.get(pkg.id as string) ?? [];
+                    const showPopular = pkg.is_most_popular === true;
                     return (
                       <motion.div
                         key={pkg.id}
@@ -234,66 +267,59 @@ export default function Partnerships() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: pIdx * 0.12, duration: 0.5 }}
                         viewport={{ once: true }}
-                        className={`rounded-2xl border-2 ${s.border} overflow-hidden scrapbook-shadow bg-white flex flex-col ${s.lift ? 'scale-105 shadow-xl' : ''}`}
+                        className={`rounded-2xl border-2 ${s.border} overflow-hidden scrapbook-shadow bg-white flex flex-col min-w-0 max-w-lg mx-auto w-full md:max-w-none`}
                       >
                         {/* Tier header */}
                         <div className={`${s.headerBg} pt-6 pb-8 text-center relative`}>
-                          {s.badge && (
+                          {showPopular && (
                             <div className="absolute top-3 left-1/2 -translate-x-1/2">
                               <span className="bg-[var(--color-green-5)] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
                                 Most Popular
                               </span>
                             </div>
                           )}
-                          <div className={`text-5xl mt-${s.badge ? '6' : '0'} mb-3`}>{pkg.tier_emoji}</div>
+                          <div className={`text-5xl mb-3 ${showPopular ? 'mt-6' : 'mt-0'}`}>{pkg.tier_emoji}</div>
                           <h3 className={`text-2xl font-heading font-bold ${s.headerText}`}>{pkg.tier_name}</h3>
                         </div>
 
-                        {/* Benefits */}
-                        <div className="flex flex-col flex-1 divide-y divide-gray-100">
-
-                          {/* Followers */}
-                          <div className={`px-6 py-5 flex items-center gap-4 ${s.statBg}`}>
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-700 uppercase tracking-wide font-bold mb-1">
-                                Social Media Followers
-                              </p>
-                              <p className="text-xs text-gray-600 leading-snug">FB or IG page follows</p>
-                            </div>
-                            <p className={`text-4xl font-heading font-bold ${s.statText} flex-shrink-0`}>
-                              {pkg.followers_count}
-                            </p>
-                          </div>
-
-                          {/* Publicity materials */}
-                          <div className="px-6 py-5 flex items-center gap-4">
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-700 uppercase tracking-wide font-bold mb-1">
-                                Publicity Materials
-                              </p>
-                              <p className="text-xs text-gray-600 leading-snug">Likes & shares on chosen posts</p>
-                            </div>
-                            <p className={`text-4xl font-heading font-bold ${s.statText} flex-shrink-0`}>
-                              {pkg.publicity_materials_count}
-                            </p>
-                          </div>
-
-                          {/* Post-activity report */}
-                          <div className={`px-6 py-5 flex items-center gap-4 ${s.statBg}`}>
-                            <div className="flex-1">
-                              <p className="text-xs text-gray-700 uppercase tracking-wide font-bold mb-1">
-                                Post-Activity Report
-                              </p>
-                              <p className="text-xs text-gray-600 leading-snug">Provided upon request</p>
-                            </div>
-                            {pkg.has_report ? (
-                              <div className="w-9 h-9 rounded-full bg-[var(--color-green-5)] flex items-center justify-center flex-shrink-0">
-                                <Check size={18} className="text-white" strokeWidth={3} />
+                        {/* Benefits (admin-defined rows) */}
+                        <div className="flex flex-col flex-1 divide-y divide-gray-100 text-center">
+                          {lines.length === 0 ? (
+                            <div className="px-4 py-8 text-sm text-gray-400 italic">Package details coming soon.</div>
+                          ) : (
+                            lines.map((row: any, rIdx: number) => (
+                              <div
+                                key={row.id ?? rIdx}
+                                className={`px-4 sm:px-6 py-5 sm:py-6 flex flex-col items-center justify-center gap-2 sm:gap-3 ${
+                                  rIdx % 2 === 0 ? s.statBg : ''
+                                }`}
+                              >
+                                <div className="flex flex-col gap-1 max-w-[20rem]">
+                                  {(row.title || '').trim() && (
+                                    <p className="text-xs text-gray-700 uppercase tracking-wide font-bold">{row.title}</p>
+                                  )}
+                                  {(row.subtext || '').trim() && (
+                                    <p className="text-xs text-gray-600 leading-snug">{row.subtext}</p>
+                                  )}
+                                </div>
+                                {row.display_type === 'checkbox' ? (
+                                  row.is_included ? (
+                                    <div className="w-10 h-10 rounded-full bg-[var(--color-green-5)] flex items-center justify-center shrink-0 shadow-sm">
+                                      <Check size={18} className="text-white" strokeWidth={3} />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shrink-0 shadow-sm">
+                                      <X size={18} className="text-white" strokeWidth={3} />
+                                    </div>
+                                  )
+                                ) : (
+                                  <p className={`text-3xl sm:text-4xl font-heading font-bold tabular-nums leading-none ${s.statText}`}>
+                                    {String(row.text_value ?? '').trim() !== '' ? row.text_value : '—'}
+                                  </p>
+                                )}
                               </div>
-                            ) : (
-                              <span className="text-gray-400 text-xl flex-shrink-0">—</span>
-                            )}
-                          </div>
+                            ))
+                          )}
                         </div>
                       </motion.div>
                     );

@@ -10,7 +10,7 @@
  * Now includes caching support for better performance.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { ContentCache } from '../lib/cache';
 
@@ -292,8 +292,11 @@ export function useDelete(table: string) {
 export function useSettings() {
   const { data: rows, loading, error, refetch } = useFetch<{ id: string; key: string; value: string }>('site_settings');
 
-  const settings: Record<string, string> = {};
-  for (const r of rows) settings[r.key] = r.value;
+  const settings = useMemo<Record<string, string>>(() => {
+    const obj: Record<string, string> = {};
+    for (const r of rows) obj[r.key] = r.value;
+    return obj;
+  }, [rows]);
 
   const updateSetting = async (key: string, value: string) => {
     try {

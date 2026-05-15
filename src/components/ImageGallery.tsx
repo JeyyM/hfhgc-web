@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { formatFileSize, optimizeImageForWeb } from '../lib/imageOptimize';
 import { X, Search, Upload, Image as ImageIcon, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageGalleryModalProps {
@@ -23,6 +24,19 @@ const imageCache: { images: StorageImage[] | null; timestamp: number } = {
 };
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+const MAX_UPLOAD_BEFORE_OPTIMIZE = 25 * 1024 * 1024;
+const MAX_UPLOAD_AFTER_OPTIMIZE = 8 * 1024 * 1024;
+
+function extensionForUpload(file: File): string {
+  const lower = file.name.toLowerCase();
+  if (lower.endsWith('.webp')) return 'webp';
+  if (lower.endsWith('.png')) return 'png';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'jpg';
+  if (file.type === 'image/webp') return 'webp';
+  if (file.type === 'image/png') return 'png';
+  return 'jpg';
+}
+
 export default function ImageGalleryModal({
   isOpen,
   onClose,
@@ -32,7 +46,12 @@ export default function ImageGalleryModal({
   const [images, setImages] = useState<StorageImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(currentImageUrl || null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<'idle' | 'optimizing' | 'uploading'>('idle');
+  const [lastOptimize, setLastOptimize] = useState<{
+    beforeLabel: string;
+    afterLabel: string;
+    reductionPercent: number;
+  } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const IMAGES_PER_PAGE = 20;
@@ -42,6 +61,7 @@ export default function ImageGalleryModal({
     if (isOpen) {
       setSelectedImage(currentImageUrl || null);
       setPage(0); // Reset to first page
+      setLastOptimize(null);
       loadImages();
     }
   }, [isOpen, currentImageUrl]);
@@ -105,39 +125,52 @@ export default function ImageGalleryModal({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // Validate file
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image too large! Please select an image under 5MB.');
-        return;
-      }
-
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file (JPEG, PNG, WebP)');
         return;
       }
 
-      try {
-        setUploading(true);
-        
-        // Generate unique filename
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      if (file.size > MAX_UPLOAD_BEFORE_OPTIMIZE) {
+        alert(`Please choose an image under ${formatFileSize(MAX_UPLOAD_BEFORE_OPTIMIZE)}. It will be optimized before upload.`);
+        return;
+      }
 
-        // Upload to Supabase storage
+      try {
+        setUploadPhase('optimizing');
+        const result = await optimizeImageForWeb(file);
+
+        if (result.file.size > MAX_UPLOAD_AFTER_OPTIMIZE) {
+          alert(
+            `After optimization this file is still ${formatFileSize(result.file.size)} (max ${formatFileSize(MAX_UPLOAD_AFTER_OPTIMIZE)}). Try a smaller or simpler image.`
+          );
+          setUploadPhase('idle');
+          return;
+        }
+
+        setLastOptimize({
+          beforeLabel: formatFileSize(result.originalBytes),
+          afterLabel: formatFileSize(result.outputBytes),
+          reductionPercent: result.reductionPercent,
+        });
+
+        setUploadPhase('uploading');
+
+        const ext = extensionForUpload(result.file);
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+
         const { error: uploadError } = await supabase.storage
           .from('website-images')
-          .upload(fileName, file, {
+          .upload(fileName, result.file, {
             cacheControl: '3600',
-            upsert: false
+            upsert: false,
+            contentType: result.file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`,
           });
 
         if (uploadError) throw uploadError;
 
-        // Reload gallery and invalidate cache
-        imageCache.images = null; // Invalidate cache
+        imageCache.images = null;
         await loadImages();
-        
-        // Auto-select the newly uploaded image
+
         const { data: { publicUrl } } = supabase.storage
           .from('website-images')
           .getPublicUrl(fileName);
@@ -145,8 +178,9 @@ export default function ImageGalleryModal({
       } catch (error) {
         console.error('Upload error:', error);
         alert('Failed to upload image. Please try again.');
+        setLastOptimize(null);
       } finally {
-        setUploading(false);
+        setUploadPhase('idle');
       }
     };
     input.click();
@@ -203,10 +237,23 @@ export default function ImageGalleryModal({
           </div>
 
           {/* Search and Upload */}
-          <p className="text-sm text-gray-400 mb-2 text-center">
-            💡 For better performance, compress images before uploading with{' '}
-            <a href="https://squoosh.app/" target="_blank" rel="noreferrer" className="text-[var(--color-green-5)] underline hover:text-[var(--color-green-4)]">Squoosh</a>.
-          </p>
+          {lastOptimize && (
+            <p
+              className="text-sm font-semibold text-center mb-3 px-3 py-2 rounded-lg bg-[var(--color-green-1)] text-[var(--color-green-5)] border border-[var(--color-green-3)]/40"
+              role="status"
+            >
+              {lastOptimize.reductionPercent > 0 ? (
+                <>
+                  Optimized: {lastOptimize.beforeLabel} → {lastOptimize.afterLabel}{' '}
+                  <span className="whitespace-nowrap">(−{lastOptimize.reductionPercent}%)</span>
+                </>
+              ) : (
+                <>
+                  Uploaded at {lastOptimize.afterLabel} — already compact (no meaningful size change).
+                </>
+              )}
+            </p>
+          )}
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -220,11 +267,15 @@ export default function ImageGalleryModal({
             </div>
             <button 
               onClick={handleFileSelect}
-              disabled={uploading}
+              disabled={uploadPhase !== 'idle'}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--color-green-5)] text-white rounded-lg font-semibold hover:bg-[var(--color-green-4)] transition-all disabled:opacity-50"
             >
               <Upload size={18} />
-              {uploading ? 'Uploading...' : 'Upload New'}
+              {uploadPhase === 'optimizing'
+                ? 'Optimizing…'
+                : uploadPhase === 'uploading'
+                  ? 'Uploading…'
+                  : 'Upload New'}
             </button>
           </div>
         </div>
@@ -249,11 +300,17 @@ export default function ImageGalleryModal({
               </p>
               {!searchQuery && (
                 <button 
+                  type="button"
                   onClick={handleFileSelect}
-                  className="flex items-center gap-2 px-6 py-3 bg-[var(--color-green-5)] text-white rounded-lg font-semibold hover:bg-[var(--color-green-4)] transition-all"
+                  disabled={uploadPhase !== 'idle'}
+                  className="flex items-center gap-2 px-6 py-3 bg-[var(--color-green-5)] text-white rounded-lg font-semibold hover:bg-[var(--color-green-4)] transition-all disabled:opacity-50"
                 >
                   <Upload size={18} />
-                  Upload Image
+                  {uploadPhase === 'optimizing'
+                    ? 'Optimizing…'
+                    : uploadPhase === 'uploading'
+                      ? 'Uploading…'
+                      : 'Upload image'}
                 </button>
               )}
             </div>

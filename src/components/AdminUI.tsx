@@ -94,44 +94,54 @@ export interface FieldDef {
   half?: boolean;         // render at half-width in a grid
   readOnly?: boolean;
   rows?: number;          // textarea rows
+  /** Icon picker: show only the glyph + chevron (no icon name label). */
+  iconPickerCompact?: boolean;
+  /** If set, the field renders only when this returns true (same hook order — not for hooks inside). */
+  visibleWhen?: (data: Record<string, any>) => boolean;
 }
 
 /* ─── Page Header ─── */
 export function PageHeader({ title, description, children }: { title: string; description?: string; children?: ReactNode }) {
   return (
-    <div className="mb-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+    <div className="mb-8 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 min-w-0">
+        <div className="min-w-0">
           <h1 className="text-3xl font-heading font-bold text-[var(--color-green-5)]">{title}</h1>
           {description && <p className="text-gray-600 mt-1">{description}</p>}
         </div>
-        {children && <div className="flex items-center gap-3">{children}</div>}
+        {children && <div className="flex flex-wrap items-center gap-3 min-w-0">{children}</div>}
       </div>
     </div>
   );
 }
 
 /* ─── Section Card ─── */
-export function SectionCard({ title, description, children, actions }: {
+export function SectionCard({ title, description, children, actions, collapsible = true }: {
   title: string; description?: string; children: ReactNode; actions?: ReactNode;
+  /** When false, content is always visible and the header is not clickable (fewer accidental collapses). */
+  collapsible?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const showBody = !collapsible || !collapsed;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-8 overflow-hidden min-w-0">
       <div
-        className="flex items-center justify-between px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-        onClick={() => setCollapsed(!collapsed)}
+        className={`flex items-center justify-between gap-4 px-6 py-5 border-b border-gray-100 ${collapsible ? 'cursor-pointer select-none hover:bg-gray-50/80 transition-colors' : ''}`}
+        onClick={collapsible ? () => setCollapsed(c => !c) : undefined}
+        role={collapsible ? 'button' : undefined}
+        aria-expanded={collapsible ? !collapsed : undefined}
       >
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-lg font-heading font-bold text-gray-900">{title}</h2>
-          {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
+          {description && <p className="text-sm text-gray-500 mt-1 leading-relaxed">{description}</p>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {actions && <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>{actions}</div>}
-          {collapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />}
+          {collapsible && (collapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />)}
         </div>
       </div>
-      {!collapsed && <div className="px-6 py-5">{children}</div>}
+      {showBody && <div className="px-6 py-6 min-w-0">{children}</div>}
     </div>
   );
 }
@@ -259,7 +269,8 @@ export function FormField({ field, value, onChange }: {
 }) {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showImageGallery, setShowImageGallery] = useState(false);
-  const base = 'w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent transition-colors';
+  const base =
+    'w-full max-w-full min-w-0 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent transition-colors';
 
   // Auto-detect icon fields based on key name
   const isIconField = field.key === 'icon_name' || field.type === 'icon';
@@ -269,26 +280,35 @@ export function FormField({ field, value, onChange }: {
 
   if (isIconField) {
     const IconComponent = LUCIDE_ICONS[value] || Home;
+    const compact = field.iconPickerCompact;
+    const name = value || 'Home';
     return (
       <>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}{field.required && ' *'}</label>
-          <button 
+          <button
             type="button"
             onClick={() => setShowIconPicker(true)}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-sm flex items-center gap-3 hover:bg-white hover:border-[var(--color-green-5)] focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all"
+            aria-label={compact ? `${field.label}: ${name}. Choose icon.` : undefined}
+            className={
+              (compact
+                ? 'inline-flex px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm items-center gap-2 hover:bg-white hover:border-[var(--color-green-5)] focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all max-w-full'
+                : 'w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-50 text-sm flex items-center gap-3 hover:bg-white hover:border-[var(--color-green-5)] focus:ring-2 focus:ring-[var(--color-green-5)] focus:border-transparent outline-none transition-all')
+            }
           >
             <div className="w-8 h-8 rounded-lg bg-[var(--color-green-1)] flex items-center justify-center flex-shrink-0">
               <IconComponent size={20} className="text-[var(--color-green-5)]" />
             </div>
-            <span className="text-gray-900 font-medium flex-1 text-left">{value || 'Home'}</span>
+            {!compact && (
+              <span className="text-gray-900 font-medium flex-1 text-left">{name}</span>
+            )}
             <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
           </button>
         </div>
-        <IconPickerModal 
+        <IconPickerModal
           isOpen={showIconPicker}
           onClose={() => setShowIconPicker(false)}
-          selectedIcon={value || 'Home'}
+          selectedIcon={name}
           onSelect={(icon) => onChange(field.key, icon)}
         />
       </>
@@ -299,22 +319,24 @@ export function FormField({ field, value, onChange }: {
   if (isImageUrlField) {
     return (
       <>
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">{field.label}{field.required && ' *'}</label>
-          <button
-            type="button"
-            onClick={() => setShowImageGallery(true)}
-            className="px-4 py-2.5 bg-[var(--color-green-5)] text-white rounded-lg hover:bg-[var(--color-green-4)] transition-colors flex items-center gap-2 flex-shrink-0"
-            title="Browse image gallery"
-          >
-            <ImageIcon size={18} />
-            <span className="hidden sm:inline">Gallery</span>
-          </button>
-          {value && (
-            <div className="mt-2">
-              <img src={value} alt="Preview" className="h-32 w-auto rounded-lg object-cover border-2 border-gray-200" />
-            </div>
-          )}
+          <div className="flex flex-wrap items-start gap-3">
+            <button
+              type="button"
+              onClick={() => setShowImageGallery(true)}
+              className="px-4 py-2.5 bg-[var(--color-green-5)] text-white rounded-lg hover:bg-[var(--color-green-4)] transition-colors flex items-center gap-2 flex-shrink-0"
+              title="Browse image gallery"
+            >
+              <ImageIcon size={18} />
+              <span className="hidden sm:inline">Gallery</span>
+            </button>
+            {value && (
+              <div className="flex-shrink-0">
+                <img src={value} alt="Preview" className="max-h-36 max-w-full w-auto rounded-lg object-cover border-2 border-gray-200" />
+              </div>
+            )}
+          </div>
         </div>
         <ImageGalleryModal
           isOpen={showImageGallery}
@@ -374,7 +396,7 @@ export function FormField({ field, value, onChange }: {
 
   if (field.type === 'toggle') {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
           onClick={() => onChange(field.key, !value)}
@@ -382,7 +404,7 @@ export function FormField({ field, value, onChange }: {
         >
           <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-5' : ''}`} />
         </button>
-        <label className="text-sm font-semibold text-gray-700">{field.label}</label>
+        <label className="text-sm font-semibold text-gray-700 min-w-0">{field.label}</label>
       </div>
     );
   }
@@ -449,29 +471,31 @@ export function FormField({ field, value, onChange }: {
 }
 
 /* ─── Dynamic Form (renders a set of FieldDefs) ─── */
-export function DynamicForm({ fields, data, onChange }: {
+export function DynamicForm({ fields, data, onChange, className = '' }: {
   fields: FieldDef[];
   data: Record<string, any>;
   onChange: (key: string, val: any) => void;
+  className?: string;
 }) {
+  const visibleFields = fields.filter((f) => !f.visibleWhen || f.visibleWhen(data));
   // Build rows: half-width fields are grouped in pairs
   const rows: FieldDef[][] = [];
   let i = 0;
-  while (i < fields.length) {
-    if (fields[i].half && i + 1 < fields.length && fields[i + 1].half) {
-      rows.push([fields[i], fields[i + 1]]);
+  while (i < visibleFields.length) {
+    if (visibleFields[i].half && i + 1 < visibleFields.length && visibleFields[i + 1].half) {
+      rows.push([visibleFields[i], visibleFields[i + 1]]);
       i += 2;
     } else {
-      rows.push([fields[i]]);
+      rows.push([visibleFields[i]]);
       i++;
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-5 min-w-0 ${className}`}>
       {rows.map((row, idx) =>
         row.length === 2 ? (
-          <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div key={idx} className="grid min-w-0 grid-cols-1 md:grid-cols-2 gap-5 md:items-start [&>*]:min-w-0">
             {row.map(f => <FormField key={f.key} field={f} value={data[f.key]} onChange={onChange} />)}
           </div>
         ) : (
@@ -492,6 +516,12 @@ export function ItemList<T extends Record<string, any>>({
   renderPreview,
   addLabel = 'Add Item',
   emptyLabel = 'No items yet.',
+  /** accordion = expand → preview/edit/save; inline = fields always visible, changes sync immediately (use with page-level Save). */
+  variant = 'accordion',
+  /** With variant=inline, allow minimizing long forms behind the header row. */
+  inlineFoldable = false,
+  /** When inlineFoldable, new rows start minimized until expanded. */
+  inlineStartCollapsed = true,
 }: {
   items: T[];
   fields: FieldDef[];
@@ -501,10 +531,119 @@ export function ItemList<T extends Record<string, any>>({
   renderPreview?: (item: T) => ReactNode;
   addLabel?: string;
   emptyLabel?: string;
+  variant?: 'accordion' | 'inline';
+  inlineFoldable?: boolean;
+  inlineStartCollapsed?: boolean;
 }) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editData, setEditData] = useState<Record<string, any>>({});
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  /** Per-row expanded state when inlineFoldable (true = fields visible). Absent keys use !inlineStartCollapsed. */
+  const [inlineExpandedMap, setInlineExpandedMap] = useState<Record<string, boolean>>({});
+
+  const inlineRowKey = (item: T, idx: number) =>
+    item != null && (item as any).id != null ? String((item as any).id) : `row-${idx}`;
+
+  const isInlineExpanded = (item: T, idx: number) => {
+    const k = inlineRowKey(item, idx);
+    if (inlineExpandedMap[k] !== undefined) return inlineExpandedMap[k];
+    return !inlineStartCollapsed;
+  };
+
+  const toggleInlineExpansion = (item: T, idx: number) => {
+    const k = inlineRowKey(item, idx);
+    setInlineExpandedMap(prev => {
+      const expanded = prev[k] !== undefined ? prev[k] : !inlineStartCollapsed;
+      return { ...prev, [k]: !expanded };
+    });
+  };
+
+  if (variant === 'inline') {
+    return (
+      <div>
+        {items.length === 0 && (
+          <p className="text-gray-400 text-sm italic py-6 text-center rounded-lg border border-dashed border-gray-200 bg-gray-50/50">{emptyLabel}</p>
+        )}
+
+        <div className="space-y-4">
+          {items.map((item, idx) => {
+            const expanded = !inlineFoldable || isInlineExpanded(item, idx);
+            return (
+            <div
+              key={item.id != null ? String(item.id) : `row-${idx}`}
+              className="rounded-xl border border-gray-200 bg-[linear-gradient(to_bottom,#fafafa_0%,#fff_48px)] p-5 shadow-sm min-w-0 overflow-hidden"
+            >
+              <div
+                className={
+                  expanded
+                    ? 'flex items-center justify-between gap-3 mb-5 pb-4 border-b border-gray-100'
+                    : 'flex items-center justify-between gap-3'
+                }
+              >
+                {inlineFoldable ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleInlineExpansion(item, idx)}
+                    className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg px-2 py-1.5 -ml-2 hover:bg-gray-50/90 transition-colors"
+                    aria-expanded={expanded}
+                    title={expanded ? 'Show less' : 'Show more'}
+                  >
+                    <ChevronDown
+                      size={20}
+                      className={`flex-shrink-0 text-gray-500 transition-transform duration-200 ${expanded ? '' : '-rotate-90'}`}
+                    />
+                    <span className="min-w-0 flex-1">
+                      {renderPreview ? renderPreview(item) : (
+                        <span className="font-heading font-semibold text-gray-900">
+                          {(item as any).title || (item as any).name || (item as any).question || (item as any).key || `Item ${idx + 1}`}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    {renderPreview ? renderPreview(item) : (
+                      <span className="font-heading font-semibold text-gray-900">
+                        {(item as any).title || (item as any).name || (item as any).question || (item as any).key || `Item ${idx + 1}`}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (confirm('Delete this item?')) onDelete(idx);
+                  }}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Remove"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+              {expanded && (
+                <DynamicForm
+                  fields={fields}
+                  data={item as Record<string, any>}
+                  onChange={(k, v) => onSave({ ...(item as object), [k]: v } as T, idx)}
+                />
+              )}
+            </div>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={onAdd}
+          className="mt-5 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-[var(--color-green-5)] border-2 border-dashed border-[var(--color-green-3)] rounded-xl hover:bg-[var(--color-green-1)] transition-colors w-full"
+        >
+          <Plus size={18} />
+          {addLabel}
+        </button>
+      </div>
+    );
+  }
 
   const startEdit = (idx: number) => {
     setEditData({ ...items[idx] });

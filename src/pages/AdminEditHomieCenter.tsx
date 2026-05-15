@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import { PageHeader, SectionCard, ItemList, FieldDef } from '../components/AdminUI';
 import { useFetch, useUpsert, useDelete } from '../hooks/useSupabase';
@@ -10,23 +10,23 @@ const testimonialFields: FieldDef[] = [
   { key: 'quote', label: 'Quote', type: 'textarea', rows: 3 },
   { key: 'photo_url', label: 'Photo', type: 'gallery' },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
-  { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
+  { key: 'is_visible', label: 'Visible on site', type: 'toggle', half: true },
 ];
 
 const announcementFields: FieldDef[] = [
   { key: 'title', label: 'Title' },
   { key: 'body', label: 'Body', type: 'textarea', rows: 3 },
   { key: 'tag', label: 'Tag', half: true },
-  { key: 'image_url', label: 'Image', type: 'url', half: true },
+  { key: 'image_url', label: 'Image', type: 'gallery', half: true },
   { key: 'published_at', label: 'Publish Date', type: 'date', half: true },
-  { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
+  { key: 'is_visible', label: 'Visible on site', type: 'toggle', half: true },
 ];
 
 const faqFields: FieldDef[] = [
   { key: 'question', label: 'Question' },
   { key: 'answer', label: 'Answer', type: 'textarea', rows: 3 },
   { key: 'sort_order', label: 'Sort Order', type: 'number', half: true },
-  { key: 'is_visible', label: 'Visible', type: 'toggle', half: true },
+  { key: 'is_visible', label: 'Visible on site', type: 'toggle', half: true },
 ];
 
 export default function AdminEditHomieCenter() {
@@ -46,9 +46,15 @@ export default function AdminEditHomieCenter() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
-  useEffect(() => { setTList([...testimonials]); }, [testimonials]);
-  useEffect(() => { setAList([...announcements]); }, [announcements]);
-  useEffect(() => { setFList([...faqs]); }, [faqs]);
+  useEffect(() => {
+    setTList([...testimonials]);
+  }, [testimonials]);
+  useEffect(() => {
+    setAList([...announcements]);
+  }, [announcements]);
+  useEffect(() => {
+    setFList([...faqs]);
+  }, [faqs]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -59,7 +65,9 @@ export default function AdminEditHomieCenter() {
       for (const f of fList) await upsertF(f);
       await Promise.all([rT(), rA(), rF()]);
       setMsg('Saved!');
-    } catch { setMsg('Error saving.'); }
+    } catch {
+      setMsg('Error saving.');
+    }
     setSaving(false);
     setTimeout(() => setMsg(''), 3000);
   };
@@ -67,36 +75,156 @@ export default function AdminEditHomieCenter() {
   if (tL || aL || fL) return <LoadingSpinner />;
 
   return (
-    <div>
-      <PageHeader title="Edit Homies Center" description="Manage testimonials, announcements, and FAQs.">
-        <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-green-5)] text-white rounded-lg font-semibold hover:bg-[var(--color-green-4)] transition-colors disabled:opacity-50">
-          <Save size={18} />{saving ? 'Saving...' : 'Save All Changes'}
+    <div className="max-w-4xl mx-auto w-full min-w-0 pb-16">
+      <PageHeader
+        title="Edit Homie Center"
+        description={
+          'Testimonials, announcements, and FAQs for the Homie Center. Edit below — lists update as you type. Save all changes once when you are ready to publish.'
+        }
+      >
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-green-5)] text-white rounded-xl font-semibold shadow-sm hover:bg-[var(--color-green-4)] transition-colors disabled:opacity-50 whitespace-nowrap"
+        >
+          <Save size={18} />
+          {saving ? 'Saving…' : 'Save all changes'}
         </button>
       </PageHeader>
-      {msg && <div className={'mb-4 px-4 py-2 rounded-lg text-sm font-semibold ' + (msg.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700')}>{msg}</div>}
 
-      <SectionCard title="Testimonials">
-        <ItemList items={tList} fields={testimonialFields}
-          onSave={(item, idx) => { const next = [...tList]; next[idx] = item; setTList(next); }}
-          onDelete={async (idx) => { if (tList[idx].id) await removeT(tList[idx].id); setTList(prev => prev.filter((_, i) => i !== idx)); }}
-          onAdd={() => setTList(prev => [...prev, { name: '', role: '', quote: '', is_visible: true, sort_order: prev.length + 1 }])}
-          addLabel="Add Testimonial" />
+      {msg && (
+        <div
+          role="status"
+          className={
+            'mb-6 px-4 py-3 rounded-xl text-sm font-semibold border ' +
+            (msg.includes('Error')
+              ? 'bg-red-50 text-red-800 border-red-100'
+              : 'bg-green-50 text-green-800 border-green-100')
+          }
+        >
+          {msg}
+        </div>
+      )}
+
+      <SectionCard
+        title="Testimonials"
+        description="Quotes from homies shown in the Homie Center."
+        collapsible={false}
+      >
+        <ItemList
+          variant="inline"
+          inlineFoldable
+          items={tList}
+          fields={testimonialFields}
+          onSave={(item, idx) => {
+            const next = [...tList];
+            next[idx] = item;
+            setTList(next);
+          }}
+          onDelete={async idx => {
+            if (tList[idx].id) await removeT(tList[idx].id);
+            setTList(prev => prev.filter((_, i) => i !== idx));
+          }}
+          onAdd={() =>
+            setTList(prev => [
+              ...prev,
+              { name: '', role: '', quote: '', is_visible: true, sort_order: prev.length + 1 },
+            ])
+          }
+          addLabel="Add testimonial"
+          emptyLabel="No testimonials yet."
+          renderPreview={t => (
+            <div className="min-w-0">
+              <span className="font-heading font-semibold text-gray-900 truncate block">
+                {t.name?.trim() || 'Untitled testimonial'}
+              </span>
+              {t.role?.trim() && (
+                <span className="text-sm text-gray-500 truncate block">{t.role}</span>
+              )}
+            </div>
+          )}
+        />
       </SectionCard>
 
-      <SectionCard title="Announcements">
-        <ItemList items={aList} fields={announcementFields}
-          onSave={(item, idx) => { const next = [...aList]; next[idx] = item; setAList(next); }}
-          onDelete={async (idx) => { if (aList[idx].id) await removeA(aList[idx].id); setAList(prev => prev.filter((_, i) => i !== idx)); }}
-          onAdd={() => setAList(prev => [...prev, { title: '', body: '', tag: '', is_visible: true, published_at: new Date().toISOString().split('T')[0] }])}
-          addLabel="Add Announcement" />
+      <SectionCard
+        title="Announcements"
+        description="News cards with optional image and publish date."
+        collapsible={false}
+      >
+        <ItemList
+          variant="inline"
+          inlineFoldable
+          items={aList}
+          fields={announcementFields}
+          onSave={(item, idx) => {
+            const next = [...aList];
+            next[idx] = item;
+            setAList(next);
+          }}
+          onDelete={async idx => {
+            if (aList[idx].id) await removeA(aList[idx].id);
+            setAList(prev => prev.filter((_, i) => i !== idx));
+          }}
+          onAdd={() =>
+            setAList(prev => [
+              ...prev,
+              {
+                title: '',
+                body: '',
+                tag: '',
+                is_visible: true,
+                published_at: new Date().toISOString().split('T')[0],
+              },
+            ])
+          }
+          addLabel="Add announcement"
+          emptyLabel="No announcements yet."
+          renderPreview={a => (
+            <div className="min-w-0">
+              <span className="font-heading font-semibold text-gray-900 truncate block">
+                {a.title?.trim() || 'Untitled announcement'}
+              </span>
+              {a.tag?.trim() && (
+                <span className="text-xs font-semibold text-[var(--color-green-5)] uppercase tracking-wide mt-0.5 inline-block">
+                  {a.tag}
+                </span>
+              )}
+            </div>
+          )}
+        />
       </SectionCard>
 
-      <SectionCard title="FAQs">
-        <ItemList items={fList} fields={faqFields}
-          onSave={(item, idx) => { const next = [...fList]; next[idx] = item; setFList(next); }}
-          onDelete={async (idx) => { if (fList[idx].id) await removeF(fList[idx].id); setFList(prev => prev.filter((_, i) => i !== idx)); }}
-          onAdd={() => setFList(prev => [...prev, { question: '', answer: '', is_visible: true, sort_order: prev.length + 1 }])}
-          addLabel="Add FAQ" />
+      <SectionCard
+        title="FAQs"
+        description="Questions and answers for the Homie Center FAQ section."
+        collapsible={false}
+      >
+        <ItemList
+          variant="inline"
+          inlineFoldable
+          items={fList}
+          fields={faqFields}
+          onSave={(item, idx) => {
+            const next = [...fList];
+            next[idx] = item;
+            setFList(next);
+          }}
+          onDelete={async idx => {
+            if (fList[idx].id) await removeF(fList[idx].id);
+            setFList(prev => prev.filter((_, i) => i !== idx));
+          }}
+          onAdd={() =>
+            setFList(prev => [...prev, { question: '', answer: '', is_visible: true, sort_order: prev.length + 1 }])
+          }
+          addLabel="Add FAQ"
+          emptyLabel="No FAQs yet."
+          renderPreview={f => (
+            <span className="font-heading font-semibold text-gray-900 truncate block">
+              {f.question?.trim() || 'Untitled question'}
+            </span>
+          )}
+        />
       </SectionCard>
     </div>
   );

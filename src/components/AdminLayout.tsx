@@ -95,7 +95,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex w-full min-w-0">
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
         <title>Admin Panel — HFHGC</title>
@@ -173,7 +173,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Top bar (mobile) */}
         <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <button
@@ -187,7 +187,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 min-w-0 p-4 md:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>
