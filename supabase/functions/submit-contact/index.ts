@@ -2,10 +2,15 @@
  * POST /functions/v1/submit-contact — verify Turnstile, rate-limit, insert contact_submissions (service_role).
  *
  * Secrets (Dashboard → Edge Functions → Secrets):
- *   TURNSTILE_SECRET_KEY   — Cloudflare Turnstile secret key
+ *   TURNSTILE_SECRET_KEY       — Cloudflare Turnstile secret
+ *   EMAILJS_SERVICE_ID        — optional; sends notification after save
+ *   EMAILJS_TEMPLATE_ID
+ *   EMAILJS_PUBLIC_KEY        — EmailJS "Public Key" / user_id for REST
  *
  * Auto-injected by Supabase:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ *
+ * EmailJS REST: https://www.emailjs.com/docs/rest-api/send/
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
@@ -65,6 +70,47 @@ async function verifyTurnstile(token: string, remoteip: string): Promise<boolean
   });
   const json = (await res.json()) as { success?: boolean };
   return json.success === true;
+}
+
+type EmailNotificationResult = 'sent' | 'not_configured' | 'failed';
+
+/** Best-effort inbox notification; does not fail the request if EmailJS is down or unset. */
+async function sendEmailJsNotification(params: {
+  from_name: string;
+  from_email: string;
+  subject: string;
+  message: string;
+}): Promise<EmailNotificationResult> {
+  const serviceId = Deno.env.get('EMAILJS_SERVICE_ID');
+  const templateId = Deno.env.get('EMAILJS_TEMPLATE_ID');
+  const publicKey = Deno.env.get('EMAILJS_PUBLIC_KEY');
+  const accessToken = Deno.env.get('EMAILJS_PRIVATE_KEY');
+
+  if (!serviceId || !templateId || !publicKey) {
+    console.warn('[submit-contact] EmailJS secrets not set — skipping email notification');
+    return 'not_configured';
+  }
+
+  const payload: Record<string, unknown> = {
+    service_id: serviceId,
+    template_id: templateId,
+    user_id: publicKey,
+    template_params: params,
+  };
+  if (accessToken) payload.accessToken = accessToken;
+
+  const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error('[submit-contact] EmailJS send failed', res.status, txt);
+    return 'failed';
+  }
+  return 'sent';
 }
 
 Deno.serve(async (req: Request) => {
@@ -159,5 +205,12 @@ Deno.serve(async (req: Request) => {
     console.error('upsert contact_submit_rate', upsertErr);
   }
 
-  return jsonResponse({ ok: true });
+  const email_notification = await sendEmailJsNotification({
+    from_name: name,
+    from_email: email,
+    subject,
+    message,
+  });
+
+  return jsonResponse({ ok: true, email_notification });
 });

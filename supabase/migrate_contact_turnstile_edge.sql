@@ -19,7 +19,11 @@ REVOKE ALL ON public.contact_submit_rate FROM PUBLIC;
 GRANT ALL ON public.contact_submit_rate TO service_role;
 
 -- Edge Function deploy (CLI):
---   supabase secrets set TURNSTILE_SECRET_KEY=your_secret
+--   supabase secrets set TURNSTILE_SECRET_KEY=your_turnstile_secret
+--   supabase secrets set EMAILJS_SERVICE_ID=...
+--   supabase secrets set EMAILJS_TEMPLATE_ID=...
+--   supabase secrets set EMAILJS_PUBLIC_KEY=...   -- EmailJS "Public Key"
+-- Optional: supabase secrets set EMAILJS_PRIVATE_KEY=...   -- Private key → REST accessToken
 --   supabase functions deploy submit-contact --no-verify-jwt
--- Or set TURNSTILE_SECRET_KEY in Dashboard → Edge Functions → Secrets.
--- Create Turnstile widget in Cloudflare dashboard; add VITE_TURNSTILE_SITE_KEY to the Vite app.
+-- Or set the same keys in Dashboard → Edge Functions → Secrets.
+-- Turnstile: add VITE_TURNSTILE_SITE_KEY to Vercel/local .env; hostnames must match your deployed URL.

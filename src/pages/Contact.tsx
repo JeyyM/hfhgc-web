@@ -17,10 +17,14 @@ const CONTACT_MAX = {
 const CONTACT_SUBMIT_COOLDOWN_MS = 60_000;
 const CONTACT_SUBMIT_TS_KEY = 'hfhgc_contact_last_submit_ts';
 
+type EmailNotifyBanner = 'not_configured' | 'failed';
+
 export default function Contact() {
   const { settings, loading: sL } = useSettings();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
+  /** Shown after submit when backend saved OK but inbox notification email was skipped or failed. */
+  const [emailNotifyBanner, setEmailNotifyBanner] = useState<EmailNotifyBanner | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -111,7 +115,7 @@ export default function Contact() {
         }),
       });
 
-      let payload: { error?: string; ok?: boolean } = {};
+      let payload: { error?: string; ok?: boolean; email_notification?: string } = {};
       try {
         payload = await res.json();
       } catch {
@@ -123,6 +127,13 @@ export default function Contact() {
           typeof payload?.error === 'string' ? payload.error : `Request failed (${res.status}). Please try again.`;
         setError(msg);
         return;
+      }
+
+      const en = payload.email_notification;
+      if (en === 'not_configured' || en === 'failed') {
+        setEmailNotifyBanner(en);
+      } else {
+        setEmailNotifyBanner(null);
       }
 
       sessionStorage.setItem(CONTACT_SUBMIT_TS_KEY, String(Date.now()));
@@ -185,7 +196,26 @@ export default function Contact() {
                 <div className="w-16 h-16 bg-[var(--color-green-1)] rounded-full flex items-center justify-center mx-auto mb-4"><Send className="text-[var(--color-green-5)]" size={28} /></div>
                 <h3 className="text-2xl font-heading font-bold text-[var(--color-green-5)] mb-2">Message Sent!</h3>
                 <p className="text-[var(--color-text-main)]">We&apos;ll get back to you soon.</p>
-                <button type="button" onClick={() => setSent(false)} className="mt-6 text-[var(--color-green-5)] hover:underline font-semibold">Send another message</button>
+                {emailNotifyBanner === 'not_configured' && (
+                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mt-4 text-left">
+                    Your message was saved on our side. Automatic email forwarding isn&apos;t set up yet, so you may not receive a copy in your inbox—we&apos;ll still use what you submitted. You can also reach us via the email on the left.
+                  </p>
+                )}
+                {emailNotifyBanner === 'failed' && (
+                  <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mt-4 text-left">
+                    Your message was saved, but the notification email could not be sent (check Spam, or reach us via the email on the left if this is urgent).
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSent(false);
+                    setEmailNotifyBanner(null);
+                  }}
+                  className="mt-6 text-[var(--color-green-5)] hover:underline font-semibold"
+                >
+                  Send another message
+                </button>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
