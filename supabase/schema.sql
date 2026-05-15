@@ -9,6 +9,10 @@
 -- Drop all tables first (in reverse dependency order)
 DROP TABLE IF EXISTS contact_submissions CASCADE;
 DROP TABLE IF EXISTS admin_profiles CASCADE;
+DROP TABLE IF EXISTS partnership_packages CASCADE;
+DROP TABLE IF EXISTS partnership_why_items CASCADE;
+DROP TABLE IF EXISTS featured_community_stats CASCADE;
+DROP TABLE IF EXISTS featured_communities CASCADE;
 DROP TABLE IF EXISTS partner_testimonials CASCADE;
 DROP TABLE IF EXISTS partnership_benefits CASCADE;
 DROP TABLE IF EXISTS partners CASCADE;
@@ -316,7 +320,7 @@ CREATE TABLE partner_testimonials (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Partnership benefits (Why Partner With Us section)
+-- Partnership benefits (Why Partner With Us section) — legacy, kept for reference
 CREATE TABLE partnership_benefits (
   id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title       TEXT NOT NULL,
@@ -326,6 +330,78 @@ CREATE TABLE partnership_benefits (
   is_visible  BOOLEAN NOT NULL DEFAULT true,
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
+
+-- 8b. Featured communities (e.g. Pasig 2) — multiple supported
+CREATE TABLE featured_communities (
+  id             UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name           TEXT NOT NULL,
+  assigned_by    TEXT NOT NULL DEFAULT 'HFH Philippines',
+  description    TEXT NOT NULL DEFAULT '',
+  families_count INT NOT NULL DEFAULT 0,
+  image_url      TEXT NOT NULL DEFAULT '',
+  image_caption  TEXT NOT NULL DEFAULT '',
+  sort_order     INT NOT NULL DEFAULT 0,
+  is_visible     BOOLEAN NOT NULL DEFAULT true,
+  updated_at     TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO featured_communities (name, assigned_by, description, families_count, image_url, image_caption, sort_order) VALUES
+  ('Pasig 2', 'HFH Philippines',
+   'Our partnered community, Pasig 2, assigned by HFH Philippines, consists of families who formerly lived along the Pasig River, where thousands of informal settlers reside in houses made of light materials. Through Habitat for Humanity Green Chapter''s projects and initiatives, we get to build hope for these families in order to provide a sustainable community for all. We currently support 150 families and maintain active communication with their Homeowners'' Association (HOA) and youth council.',
+   150, '', 'Pasig 2, our home community', 0)
+ON CONFLICT DO NOTHING;
+
+-- 8b-ii. Stat chips per community (icon, main value, label)
+-- Uses community_name (denormalized) so no join is needed client-side.
+CREATE TABLE featured_community_stats (
+  id             UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  community_name TEXT NOT NULL DEFAULT '',   -- must match featured_communities.name
+  icon_name      TEXT NOT NULL DEFAULT 'Users',
+  value          TEXT NOT NULL DEFAULT '',   -- main display text, e.g. '150'
+  label          TEXT NOT NULL DEFAULT '',   -- subtext, e.g. 'Families Supported'
+  sort_order     INT NOT NULL DEFAULT 0,
+  updated_at     TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO featured_community_stats (community_name, icon_name, value, label, sort_order) VALUES
+  ('Pasig 2', 'Users',     '150', 'Families Supported', 0),
+  ('Pasig 2', 'Handshake', 'HOA', 'Active Partnership',  1)
+ON CONFLICT DO NOTHING;
+
+-- 8c. "Why Partner With Us" bullet items
+CREATE TABLE partnership_why_items (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  icon_name  TEXT NOT NULL DEFAULT 'CheckCircle',
+  text       TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT true,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO partnership_why_items (icon_name, text, sort_order) VALUES
+  ('Building',  'Increase your organization''s social responsibility', 0),
+  ('Megaphone', 'Grow your online following through HFHGC''s social media mentions', 1),
+  ('Users',     'Gain a wider reach of over 600 Legacy Builders', 2)
+ON CONFLICT DO NOTHING;
+
+-- 8d. Partnership package tiers (Gold / Silver / Bronze)
+CREATE TABLE partnership_packages (
+  id                        UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tier_name                 TEXT NOT NULL,
+  tier_emoji                TEXT NOT NULL DEFAULT '🏆',
+  followers_count           INT NOT NULL DEFAULT 0,
+  publicity_materials_count INT NOT NULL DEFAULT 0,
+  has_report                BOOLEAN NOT NULL DEFAULT true,
+  sort_order                INT NOT NULL DEFAULT 0,
+  is_visible                BOOLEAN NOT NULL DEFAULT true,
+  updated_at                TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO partnership_packages (tier_name, tier_emoji, followers_count, publicity_materials_count, has_report, sort_order) VALUES
+  ('Gold',   '🥇', 15, 3, true, 0),
+  ('Silver', '🥈', 10, 2, true, 1),
+  ('Bronze', '🥉',  8, 1, true, 2)
+ON CONFLICT DO NOTHING;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
@@ -384,11 +460,15 @@ ALTER TABLE blog_posts           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE testimonials         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faqs                 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE partners             ENABLE ROW LEVEL SECURITY;
-ALTER TABLE partner_testimonials ENABLE ROW LEVEL SECURITY;
-ALTER TABLE partnership_benefits ENABLE ROW LEVEL SECURITY;
-ALTER TABLE contact_submissions  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_profiles       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partners               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partner_testimonials   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_benefits   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE featured_communities      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE featured_community_stats  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_why_items     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE partnership_packages   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_submissions    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_profiles         ENABLE ROW LEVEL SECURITY;
 
 -- ── Public read policies (anonymous + authenticated) ──────────────────────
 
@@ -428,6 +508,14 @@ DROP POLICY IF EXISTS "Admin full access" ON faqs;
 DROP POLICY IF EXISTS "Admin full access" ON partners;
 DROP POLICY IF EXISTS "Admin full access" ON partner_testimonials;
 DROP POLICY IF EXISTS "Admin full access" ON partnership_benefits;
+DROP POLICY IF EXISTS "Public read" ON featured_communities;
+DROP POLICY IF EXISTS "Public read" ON featured_community_stats;
+DROP POLICY IF EXISTS "Admin full access" ON featured_community_stats;
+DROP POLICY IF EXISTS "Public read" ON partnership_why_items;
+DROP POLICY IF EXISTS "Public read" ON partnership_packages;
+DROP POLICY IF EXISTS "Admin full access" ON featured_communities;
+DROP POLICY IF EXISTS "Admin full access" ON partnership_why_items;
+DROP POLICY IF EXISTS "Admin full access" ON partnership_packages;
 DROP POLICY IF EXISTS "Admin full access" ON contact_submissions;
 DROP POLICY IF EXISTS "Admin full access" ON admin_profiles;
 DROP POLICY IF EXISTS "Admin upload" ON storage.objects;
@@ -447,9 +535,13 @@ CREATE POLICY "Public read" ON blog_posts           FOR SELECT USING (is_publish
 CREATE POLICY "Public read" ON testimonials         FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON announcements        FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public read" ON faqs                 FOR SELECT USING (is_visible = true);
-CREATE POLICY "Public read" ON partners             FOR SELECT USING (is_visible = true);
-CREATE POLICY "Public read" ON partner_testimonials FOR SELECT USING (is_visible = true);
-CREATE POLICY "Public read" ON partnership_benefits FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partners               FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partner_testimonials   FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partnership_benefits   FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON featured_communities      FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON featured_community_stats  FOR SELECT USING (true);
+CREATE POLICY "Public read" ON partnership_why_items     FOR SELECT USING (is_visible = true);
+CREATE POLICY "Public read" ON partnership_packages   FOR SELECT USING (is_visible = true);
 
 -- Contact submissions — anyone can INSERT
 CREATE POLICY "Anyone can submit" ON contact_submissions FOR INSERT WITH CHECK (true);
@@ -482,11 +574,15 @@ CREATE POLICY "Admin full access" ON blog_posts           FOR ALL USING (is_admi
 CREATE POLICY "Admin full access" ON testimonials         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON announcements        FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin full access" ON faqs                 FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON partners             FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON partner_testimonials FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON partnership_benefits FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON contact_submissions  FOR ALL USING (is_admin()) WITH CHECK (is_admin());
-CREATE POLICY "Admin full access" ON admin_profiles       FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partners               FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partner_testimonials   FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partnership_benefits   FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON featured_communities      FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON featured_community_stats  FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partnership_why_items     FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON partnership_packages   FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON contact_submissions    FOR ALL USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin full access" ON admin_profiles         FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 
 -- Storage policy: admins can upload to the website-images bucket
 CREATE POLICY "Admin upload" ON storage.objects
@@ -527,7 +623,8 @@ BEGIN
     'site_settings', 'home_hero', 'home_cards', 'impact_stats', 'social_links',
     'about_page', 'core_values',
     'projects', 'blog_posts', 'testimonials', 'announcements', 'faqs',
-    'partners', 'partner_testimonials', 'partnership_benefits'
+    'partners', 'partner_testimonials', 'partnership_benefits',
+    'featured_communities', 'featured_community_stats', 'partnership_why_items', 'partnership_packages'
   ] LOOP
     EXECUTE format(
       'CREATE TRIGGER set_updated_at BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION update_updated_at();',
