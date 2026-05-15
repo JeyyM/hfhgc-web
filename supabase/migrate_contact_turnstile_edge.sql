@@ -23,7 +23,8 @@ GRANT ALL ON public.contact_submit_rate TO service_role;
 --   supabase secrets set EMAILJS_SERVICE_ID=...
 --   supabase secrets set EMAILJS_TEMPLATE_ID=...
 --   supabase secrets set EMAILJS_PUBLIC_KEY=...   -- EmailJS "Public Key"
--- Optional: supabase secrets set EMAILJS_PRIVATE_KEY=...   -- Private key → REST accessToken
+-- If EmailJS "Use Private Key" is enabled: REQUIRED
+-- supabase secrets set EMAILJS_PRIVATE_KEY=...   -- REST `accessToken`
 --   supabase functions deploy submit-contact --no-verify-jwt
 -- Or set the same keys in Dashboard → Edge Functions → Secrets.
 -- Turnstile: add VITE_TURNSTILE_SITE_KEY to Vercel/local .env; hostnames must match your deployed URL.

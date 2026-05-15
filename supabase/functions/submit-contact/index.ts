@@ -6,6 +6,8 @@
  *   EMAILJS_SERVICE_ID        — optional; sends notification after save
  *   EMAILJS_TEMPLATE_ID
  *   EMAILJS_PUBLIC_KEY        — EmailJS "Public Key" / user_id for REST
+ *   EMAILJS_PRIVATE_KEY       — required if EmailJS → Account → API Settings has "Use Private Key" ON
+ *                               (maps to REST body field `accessToken`)
  *
  * Auto-injected by Supabase:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -108,6 +110,11 @@ async function sendEmailJsNotification(params: {
   if (!res.ok) {
     const txt = await res.text();
     console.error('[submit-contact] EmailJS send failed', res.status, txt);
+    if (res.status === 403 && !accessToken) {
+      console.warn(
+        '[submit-contact] EmailJS 403 — add Edge secret EMAILJS_PRIVATE_KEY (your EmailJS private key) when "Use Private Key" is enabled in EmailJS.',
+      );
+    }
     return 'failed';
   }
   return 'sent';

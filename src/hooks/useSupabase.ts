@@ -12,7 +12,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { ContentCache } from '../lib/cache';
+import { ContentCache, supabaseTableCacheLogicalKey } from '../lib/cache';
 
 /* ─── Generic Fetch ─── */
 interface FetchOptions {
@@ -29,10 +29,9 @@ export function useFetch<T = any>(table: string, options?: FetchOptions) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate cache key based on table and options
   const getCacheKey = () => {
     const optionsStr = options ? JSON.stringify(options) : '';
-    return `${table}_${optionsStr}`;
+    return supabaseTableCacheLogicalKey(table, optionsStr);
   };
 
   const refetch = useCallback(async (skipCache = false) => {
@@ -107,7 +106,7 @@ export function useFetchSingle<T = any>(table: string, cacheTTL?: number) {
     setLoading(true);
     setError(null);
 
-    const cacheKey = `${table}_single`;
+    const cacheKey = supabaseTableCacheLogicalKey(table, 'single');
 
     // Try cache first
     if (!skipCache && cacheTTL) {
@@ -157,16 +156,8 @@ export function useUpsert<T = any>(table: string) {
         .single();
       if (err) throw err;
       
-      // Invalidate cache for this table
-      ContentCache.remove(`${table}_single`);
-      // Also clear any list caches for this table
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith(`cache_${table}_`)) {
-          localStorage.removeItem(key);
-        }
-      });
-      
+      ContentCache.removeAllForTable(table);
+
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -196,14 +187,8 @@ export function useInsert<T = any>(table: string) {
         .single();
       if (err) throw err;
       
-      // Invalidate cache for this table
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith(`cache_${table}_`)) {
-          localStorage.removeItem(key);
-        }
-      });
-      
+      ContentCache.removeAllForTable(table);
+
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -234,14 +219,8 @@ export function useUpdate<T = any>(table: string) {
         .single();
       if (err) throw err;
       
-      // Invalidate cache for this table
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith(`cache_${table}_`)) {
-          localStorage.removeItem(key);
-        }
-      });
-      
+      ContentCache.removeAllForTable(table);
+
       return data as T;
     } catch (e: any) {
       setError(e.message);
@@ -267,14 +246,8 @@ export function useDelete(table: string) {
       const { error: err } = await supabase.from(table).delete().eq('id', id);
       if (err) throw err;
       
-      // Invalidate cache for this table
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith(`cache_${table}_`)) {
-          localStorage.removeItem(key);
-        }
-      });
-      
+      ContentCache.removeAllForTable(table);
+
       return true;
     } catch (e: any) {
       setError(e.message);
@@ -306,33 +279,29 @@ export function useSettings() {
         .eq('key', key)
         .maybeSingle();
 
-      console.log(`[${key}] lookup:`, existing, 'error:', fetchError);
-
       if (fetchError) {
         console.error(`[${key}] lookup error:`, fetchError);
         return false;
       }
 
       if (existing) {
-        const { data: updated, error: updateError, status, statusText } = await supabase
+        const { data: updated, error: updateError } = await supabase
           .from('site_settings')
           .update({ value })
           .eq('id', existing.id)
           .select();
-        
-        console.log(`[${key}] update response:`, { data: updated, error: updateError, status, statusText });
+
         if (updateError) return false;
         if (!updated || updated.length === 0) {
           console.warn(`[${key}] 0 rows updated — RLS blocking`);
           return false;
         }
       } else {
-        const { data: inserted, error: insertError, status, statusText } = await supabase
+        const { error: insertError } = await supabase
           .from('site_settings')
           .insert({ key, value })
           .select();
-        
-        console.log(`[${key}] insert response:`, { data: inserted, error: insertError, status, statusText });
+
         if (insertError) return false;
       }
       
@@ -347,7 +316,6 @@ export function useSettings() {
     try {
       const promises = Object.entries(pairs).map(([k, v]) => updateSetting(k, v));
       const results = await Promise.all(promises);
-      console.log('updateAll individual results:', results);
       await refetch(true); // skip cache to get fresh data
       return results.every(Boolean);
     } catch (e) {

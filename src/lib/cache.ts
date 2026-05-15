@@ -11,16 +11,34 @@ interface CacheEntry<T> {
   version: string;
 }
 
-const CACHE_VERSION = '1.0'; // Increment this to invalidate all caches
+const CACHE_VERSION = '1.1'; // Bump when storage shape / prefix changes
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes default
+
+/**
+ * Full localStorage key = STORAGE_PREFIX + logicalKey.
+ * Scoped to this app so we do not collide with other scripts using `cache_*` on the same origin.
+ */
+const STORAGE_PREFIX = 'hfhgc:sb:content:v1:';
+
+/** RECORD SEPARATOR: separates Postgres table name from options suffix in logical keys */
+const TABLE_SEP = '\u001e';
+
+/** Logical key fragment for ContentCache (`table` + SEP + suffix, e.g. options JSON or `single`). */
+export function supabaseTableCacheLogicalKey(table: string, suffix: string): string {
+  return `${table}${TABLE_SEP}${suffix}`;
+}
 
 export class ContentCache {
   /**
    * Get cached data if available and not expired
    */
+  private static lsKey(logicalKey: string): string {
+    return `${STORAGE_PREFIX}${logicalKey}`;
+  }
+
   static get<T>(key: string, ttl: number = DEFAULT_TTL): T | null {
     try {
-      const item = localStorage.getItem(`cache_${key}`);
+      const item = localStorage.getItem(ContentCache.lsKey(key));
       if (!item) return null;
 
       const entry: CacheEntry<T> = JSON.parse(item);
@@ -55,7 +73,7 @@ export class ContentCache {
         timestamp: Date.now(),
         version: CACHE_VERSION,
       };
-      localStorage.setItem(`cache_${key}`, JSON.stringify(entry));
+      localStorage.setItem(ContentCache.lsKey(key), JSON.stringify(entry));
     } catch (error) {
       console.error('Cache write error:', error);
       // If storage is full, clear old caches
@@ -68,7 +86,7 @@ export class ContentCache {
             timestamp: Date.now(),
             version: CACHE_VERSION,
           };
-          localStorage.setItem(`cache_${key}`, JSON.stringify(entry));
+          localStorage.setItem(ContentCache.lsKey(key), JSON.stringify(entry));
         } catch (retryError) {
           console.error('Cache write failed after cleanup:', retryError);
         }
@@ -80,7 +98,24 @@ export class ContentCache {
    * Remove specific cache entry
    */
   static remove(key: string): void {
-    localStorage.removeItem(`cache_${key}`);
+    localStorage.removeItem(ContentCache.lsKey(key));
+  }
+
+  /** Remove every cache entry belonging to `table` (matches logical keys `table<SEP>…`). */
+  static removeAllForTable(table: string): void {
+    try {
+      for (const lsKey of Object.keys(localStorage)) {
+        if (!lsKey.startsWith(STORAGE_PREFIX)) continue;
+        const logical = lsKey.slice(STORAGE_PREFIX.length);
+        const sep = logical.indexOf(TABLE_SEP);
+        if (sep === -1) continue;
+        if (logical.slice(0, sep) === table) {
+          localStorage.removeItem(lsKey);
+        }
+      }
+    } catch (e) {
+      console.error('Cache removeAllForTable error:', e);
+    }
   }
 
   /**
@@ -89,7 +124,7 @@ export class ContentCache {
   static clearAll(): void {
     const keys = Object.keys(localStorage);
     keys.forEach((key) => {
-      if (key.startsWith('cache_')) {
+      if (key.startsWith(STORAGE_PREFIX)) {
         localStorage.removeItem(key);
       }
     });
@@ -103,7 +138,7 @@ export class ContentCache {
     const cacheEntries: Array<{ key: string; timestamp: number }> = [];
 
     keys.forEach((key) => {
-      if (key.startsWith('cache_')) {
+      if (key.startsWith(STORAGE_PREFIX)) {
         try {
           const item = localStorage.getItem(key);
           if (item) {
@@ -135,7 +170,7 @@ export class ContentCache {
     let oldestTimestamp = Date.now();
 
     keys.forEach((key) => {
-      if (key.startsWith('cache_')) {
+      if (key.startsWith(STORAGE_PREFIX)) {
         count++;
         const item = localStorage.getItem(key);
         if (item) {

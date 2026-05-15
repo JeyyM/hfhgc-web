@@ -45,9 +45,6 @@ export default function AdminEditProjectArticle() {
   useEffect(() => {
     if (!isNew && projects && projects.length > 0) {
       const p = projects[0];
-      console.log('Loaded project from database:', p);
-      console.log('Tags:', p.tags);
-      console.log('Content JSON:', p.content_json);
       setProject({
         ...p,
         tags: p.tags || [],
@@ -80,12 +77,9 @@ export default function AdminEditProjectArticle() {
         content_json: project.content_json || { type: 'doc', content: [] },
       };
 
-      console.log('Saving project data:', dataToSave);
-
       const result = await upsert(dataToSave);
       if (result) {
         setMsg('Saved successfully!');
-        console.log('Save result:', result);
         if (isNew) {
           // Navigate to the edit page for the new project
           setTimeout(() => navigate(`/admin/projects/edit/${result.id}`), 1000);

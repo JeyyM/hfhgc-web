@@ -4,10 +4,7 @@ import { ArrowLeft, Calendar, Clock, MapPin, User, Tag, ExternalLink, Share2, Ch
 import { useFetch } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import TextAlign from '@tiptap/extension-text-align';
+import { createProjectRichTextExtensions } from '../lib/projectRichTextExtensions';
 import { useEffect, useState } from 'react';
 import SEO from '../components/SEO';
 
@@ -25,22 +22,7 @@ export default function ProjectDetail() {
 
   // Read-only editor to display the rich text content
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-      }),
-      Link.configure({
-        openOnClick: true,
-        HTMLAttributes: {
-          class: 'text-[var(--color-green-5)] underline hover:text-[var(--color-green-4)]',
-        },
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
+    extensions: createProjectRichTextExtensions({ openOnClick: true }),
     editable: false,
     content: project?.content_json || { type: 'doc', content: [] },
   });

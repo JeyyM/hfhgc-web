@@ -1,8 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import TextAlign from '@tiptap/extension-text-align';
+import { createProjectRichTextExtensions } from '../lib/projectRichTextExtensions';
 import {
   Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3,
   Quote, Undo, Redo, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Image as ImageIcon
@@ -22,22 +19,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   const [linkUrl, setLinkUrl] = useState('');
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-[var(--color-green-5)] underline hover:text-[var(--color-green-4)]',
-        },
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
+    extensions: createProjectRichTextExtensions({ openOnClick: false }),
     content: content || '',
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON());
