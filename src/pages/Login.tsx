@@ -196,8 +196,8 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
+            {/* Remember Me */}
+            <div className="flex items-center justify-start">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -210,12 +210,6 @@ export default function Login() {
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-[var(--color-text-main)]">
                   Remember this device
                 </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-[var(--color-green-5)] hover:text-[var(--color-green-4)]">
-                  Forgot password?
-                </a>
               </div>
             </div>
 
