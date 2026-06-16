@@ -25,7 +25,6 @@ export default function AdminEditProjectArticle() {
     category: 'Build',
     status: 'upcoming',
     cover_image_url: '',
-    cover_image_caption: '',
     content_json: { type: 'doc', content: [] },
     author: '',
     published_at: new Date().toISOString().split('T')[0],
@@ -423,20 +422,6 @@ export default function AdminEditProjectArticle() {
             >
               {project.cover_image_url ? 'Change Cover Image' : 'Select Cover Image'}
             </button>
-          </div>
-
-          {/* Cover Image Caption */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Cover Image Caption
-            </label>
-            <input
-              type="text"
-              value={project.cover_image_caption}
-              onChange={(e) => setProject({ ...project, cover_image_caption: e.target.value })}
-              placeholder="Optional caption for the cover image"
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[var(--color-green-5)] transition-colors"
-            />
           </div>
         </div>
 

@@ -254,12 +254,6 @@ export default function ProjectDetail() {
           ) : (
             <p className="text-gray-600">Loading content...</p>
           )}
-
-          {project.cover_image_caption && (
-            <p className="text-sm text-gray-500 italic mt-6 text-center">
-              {project.cover_image_caption}
-            </p>
-          )}
         </motion.div>
 
         {/* Back to Projects Button */}
