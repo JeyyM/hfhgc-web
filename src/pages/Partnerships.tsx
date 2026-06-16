@@ -1,6 +1,6 @@
-﻿import { motion } from 'motion/react';
+﻿import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect, useMemo } from 'react';
-import { ExternalLink, Heart, Building, Users, Handshake, Globe, Quote, Check, X, Home as HomeIcon } from 'lucide-react';
+import { ExternalLink, Heart, Building, Users, Handshake, Globe, Quote, Check, X, Home as HomeIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFetch, useSettings } from '../hooks/useSupabase';
 import { LoadingSpinner } from '../components/StatusIndicators';
@@ -9,6 +9,8 @@ import { LUCIDE_ICONS } from '../components/AdminUI';
 
 export default function Partnerships() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [partnerSlide, setPartnerSlide] = useState(0);
+  const [partnerDir, setPartnerDir] = useState(1);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -327,27 +329,6 @@ export default function Partnerships() {
                 </div>
               );
             })()}
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              viewport={{ once: true }}
-              className="mt-12 bg-[var(--color-green-5)] rounded-2xl px-8 py-8 text-center scrapbook-shadow"
-            >
-              <p className="text-2xl font-heading font-bold text-white mb-2">
-                Looking for a different fit?
-              </p>
-              <p className="text-white/80 mb-6">
-                Not sure which package fits? Let's talk and find the right arrangement for your organization.
-              </p>
-              <Link
-                to="/contact"
-                className="inline-block bg-white text-[var(--color-green-5)] font-bold px-8 py-3 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 scrapbook-shadow"
-              >
-                Contact Us to Discuss Your Needs
-              </Link>
-            </motion.div>
           </div>
         </section>
       )}
@@ -387,20 +368,24 @@ export default function Partnerships() {
             <p className="text-center text-[var(--color-text-main)] max-w-2xl mx-auto mb-12">
               We're proud to work alongside these incredible organizations who share our vision of homes, communities, and hope.
             </p>
-            <div className={`grid ${windowWidth < 600 ? 'grid-cols-1' : windowWidth < 1024 ? 'grid-cols-2' : 'grid-cols-3'} gap-8`}>
+            <div className={`grid ${windowWidth < 600 ? 'grid-cols-1' : windowWidth < 1024 ? 'grid-cols-2 auto-grid-center' : 'grid-cols-3'} gap-8`}>
               {currentPartners.map((p: any, i: number) => (
                 <motion.div
                   key={p.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="border-2 border-black bg-white rounded-2xl p-6 scrapbook-shadow hover:shadow-xl transition-shadow"
+                  className="border-2 border-black bg-white rounded-2xl p-6 scrapbook-shadow hover:shadow-xl transition-shadow flex flex-col items-center text-center"
                 >
-                  {p.image_url && <img src={p.image_url} alt={p.name} className="h-16 object-contain mb-4" />}
+                  {p.image_url && (
+                    <div className="flex justify-center mb-4 w-full">
+                      <img src={p.image_url} alt={p.name} className="h-16 object-contain" />
+                    </div>
+                  )}
                   <h3 className="text-xl font-heading font-bold text-[var(--color-green-5)] mb-2">{p.name}</h3>
                   {p.description && <p className="text-sm text-[var(--color-text-main)] mb-3">{p.description}</p>}
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    {p.since_year && <span className="text-[var(--color-green-4)] font-medium">Partner since {p.since_year}</span>}
+                  <div className="flex items-center justify-center flex-wrap gap-3 text-xs text-gray-500 mt-auto pt-2">
+                    {p.since_year && <span className="text-[var(--color-green-5)] font-semibold">Partner since {p.since_year}</span>}
                     {p.website && p.website !== '#' && (
                       <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-green-5)] hover:underline">
                         <ExternalLink size={12} />Website
@@ -440,28 +425,131 @@ export default function Partnerships() {
       )}
 
       {/* ── Partner Testimonials ── */}
-      {testimonials.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-heading font-bold text-[var(--color-green-5)] text-center mb-12">What Our Partners Say</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {testimonials.map((t: any) => (
-                <div key={t.id} className="bg-[var(--color-green-1)] p-8 rounded-2xl scrapbook-shadow relative">
-                  <Quote className="absolute top-4 right-4 text-white opacity-40" size={48} />
-                  <blockquote className="text-[var(--color-text-main)] italic mb-4">"{t.quote}"</blockquote>
-                  <div className="flex items-center gap-3">
-                    {t.image_url && <img src={t.image_url} alt={t.name} className="w-12 h-12 rounded-full object-cover" />}
-                    <div>
-                      <p className="font-heading font-bold text-[var(--color-green-5)]">{t.name}</p>
-                      <p className="text-sm text-gray-600">{t.title}</p>
-                    </div>
+      {testimonials.filter((t: any) => t.is_visible !== false).length > 0 && (() => {
+        const visible = testimonials.filter((t: any) => t.is_visible !== false);
+        const goTo = (idx: number) => {
+          setPartnerDir(idx > partnerSlide ? 1 : -1);
+          setPartnerSlide(idx);
+        };
+        const prev = () => goTo((partnerSlide - 1 + visible.length) % visible.length);
+        const next = () => goTo((partnerSlide + 1) % visible.length);
+        const variants = {
+          enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+          center: { x: 0, opacity: 1 },
+          exit:  (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+        };
+        const current = visible[partnerSlide];
+        return (
+          <section className="py-24 bg-white">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-14">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 bg-[var(--color-green-5)] rounded-full flex items-center justify-center">
+                    <Quote className="text-white" size={28} />
                   </div>
                 </div>
-              ))}
+                <h2 className="text-4xl font-heading font-bold text-[var(--color-green-5)] mb-3">What Our Partners Say</h2>
+                <p className="text-lg text-[var(--color-text-main)] max-w-xl mx-auto">
+                  Hear from the organizations who have walked alongside us in building hope.
+                </p>
+              </div>
+
+              {/* Carousel card */}
+              <div className="relative bg-[var(--color-green-5)] rounded-3xl p-10 md:p-14 overflow-hidden scrapbook-shadow">
+                <AnimatePresence custom={partnerDir} mode="wait">
+                  <motion.div
+                    key={partnerSlide}
+                    custom={partnerDir}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                    className="flex flex-row items-center gap-10"
+                  >
+                    <div className="flex-shrink-0">
+                      {current?.image_url && (
+                        <img
+                          src={current.image_url}
+                          alt={current.name}
+                          className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 border-white/40 shadow-lg"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <Quote className="text-white/30 mb-4" size={40} />
+                      <p className="text-white text-xl md:text-2xl font-medium leading-relaxed mb-6 italic">
+                        "{current?.quote}"
+                      </p>
+                      <p className="text-white font-heading font-bold text-lg">{current?.name}</p>
+                      <p className="text-white/70 text-sm">{current?.title}</p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {visible.length > 1 && (
+                  <>
+                    <button
+                      onClick={prev}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <ChevronLeft className="text-white" size={22} />
+                    </button>
+                    <button
+                      onClick={next}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <ChevronRight className="text-white" size={22} />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Dot indicators */}
+              {visible.length > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {visible.map((_: any, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => goTo(i)}
+                      className={`h-2.5 rounded-full transition-all duration-300 ${
+                        i === partnerSlide ? 'w-8 bg-[var(--color-green-5)]' : 'w-2.5 bg-gray-300 hover:bg-gray-400'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
+
+      {/* ── Looking for a different fit? ── */}
+      <section className="py-20 bg-[var(--color-bg-main)]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            viewport={{ once: true }}
+            className="bg-[var(--color-green-5)] rounded-2xl px-8 py-12 text-center scrapbook-shadow"
+          >
+            <p className="text-3xl font-heading font-bold text-white mb-3">
+              Looking for a different fit?
+            </p>
+            <p className="text-white/80 mb-8 text-lg max-w-xl mx-auto">
+              Not sure which package fits? Let's talk and find the right arrangement for your organization.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-block bg-white text-[var(--color-green-5)] font-bold px-10 py-3 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 scrapbook-shadow text-lg"
+            >
+              Contact Us to Discuss Your Needs
+            </Link>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }
