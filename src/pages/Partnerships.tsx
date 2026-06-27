@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect, useMemo } from 'react';
 import { ExternalLink, Heart, Building, Users, Handshake, Globe, Quote, Check, X, Home as HomeIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -257,7 +257,7 @@ export default function Partnerships() {
               ];
 
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start">
                   {visiblePackages.map((pkg: any, pIdx: number) => {
                     const s = tierStyles[pIdx] ?? tierStyles[tierStyles.length - 1];
                     const lines = packageItemsByPkg.get(pkg.id as string) ?? [];
@@ -269,23 +269,23 @@ export default function Partnerships() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: pIdx * 0.12, duration: 0.5 }}
                         viewport={{ once: true }}
-                        className={`rounded-2xl border-2 ${s.border} overflow-hidden scrapbook-shadow bg-white flex flex-col min-w-0 max-w-lg mx-auto w-full md:max-w-none`}
+                        className={`rounded-2xl border-2 ${s.border} overflow-hidden scrapbook-shadow bg-white min-w-0 max-w-lg mx-auto w-full md:max-w-none`}
                       >
-                        {/* Tier header */}
-                        <div className={`${s.headerBg} pt-6 pb-8 text-center relative`}>
-                          {showPopular && (
-                            <div className="absolute top-3 left-1/2 -translate-x-1/2">
+                        {/* Tier header — badge row reserved on every card so headers align */}
+                        <div className={`${s.headerBg} px-4 pb-8 text-center`}>
+                          <div className="flex justify-center items-center min-h-[2rem] pt-3 mb-2">
+                            {showPopular && (
                               <span className="bg-[var(--color-green-5)] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
                                 Most Popular
                               </span>
-                            </div>
-                          )}
-                          <div className={`text-5xl mb-3 ${showPopular ? 'mt-6' : 'mt-0'}`}>{pkg.tier_emoji}</div>
-                          <h3 className={`text-2xl font-heading font-bold ${s.headerText}`}>{pkg.tier_name}</h3>
+                            )}
+                          </div>
+                          <div className="text-5xl mb-3">{pkg.tier_emoji}</div>
+                          <h3 className={`text-3xl font-heading font-bold ${s.headerText}`}>{pkg.tier_name}</h3>
                         </div>
 
                         {/* Benefits (admin-defined rows) */}
-                        <div className="flex flex-col flex-1 divide-y divide-gray-100 text-center">
+                        <div className="flex flex-col divide-y divide-gray-100 text-center">
                           {lines.length === 0 ? (
                             <div className="px-4 py-8 text-sm text-gray-400 italic">Package details coming soon.</div>
                           ) : (

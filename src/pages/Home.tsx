@@ -127,11 +127,11 @@ export default function Home() {
               <Link to="/about" className="inline-block bg-white text-[var(--color-green-5)] border-2 border-[var(--color-green-5)] font-bold py-4 px-10 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 text-lg shadow-[3px_3px_0px_rgba(0,0,0,0.12)]">Learn More</Link>
             </div>
             <div className={`mt-16 grid ${windowWidth < 600 ? 'grid-cols-1' : windowWidth < 980 ? 'grid-cols-2 auto-grid-center' : 'grid-cols-3'} gap-10 text-left max-w-6xl mx-auto`}>
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-12 rounded-2xl scrapbook-shadow">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-12 rounded-2xl scrapbook-shadow overflow-hidden">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><Mail className="text-white" size={24} /></div>
                 <h3 className="text-xl font-heading font-bold text-white mb-2">Email Us</h3>
                 <p className="text-white/80 text-sm mb-3">We reply within 24 hours on school days.</p>
-                <a href={'mailto:' + (settings.org_email || 'habitatforhumanitydlsu@gmail.com')} className="text-white font-semibold hover:underline">{settings.org_email || 'habitatforhumanitydlsu@gmail.com'}</a>
+                <a href={'mailto:' + (settings.org_email || 'habitatforhumanitydlsu@gmail.com')} className="block -mx-12 px-4 py-0 text-center text-white font-semibold hover:underline break-all">{settings.org_email || 'habitatforhumanitydlsu@gmail.com'}</a>
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} viewport={{ once: true }} className="bg-[var(--color-green-5)] p-12 rounded-2xl scrapbook-shadow">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-4"><MapPin className="text-white" size={24} /></div>

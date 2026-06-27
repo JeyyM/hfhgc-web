@@ -1,6 +1,6 @@
 ﻿import { motion, AnimatePresence } from 'motion/react';
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Bell, Quote, MessageCircleQuestion } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Bell, Quote, MessageCircleQuestion, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useSupabase';
 import SEO from '../components/SEO';
@@ -13,6 +13,20 @@ export default function HomiesCenter() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (!selectedAnnouncement) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedAnnouncement(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [selectedAnnouncement]);
 
   if (tL || anL || fL) return <LoadingSpinner />;
 
@@ -165,38 +179,121 @@ export default function HomiesCenter() {
 
             <div className="space-y-8">
               {visibleAnn.map((ann: any, idx: number) => (
-                <motion.div
+                <motion.button
                   key={ann.id}
+                  type="button"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: idx * 0.08 }}
                   viewport={{ once: true }}
-                  className="bg-white rounded-2xl overflow-hidden scrapbook-border scrapbook-shadow flex flex-col sm:flex-row"
+                  onClick={() => setSelectedAnnouncement(ann)}
+                  className="w-full text-left bg-white rounded-2xl overflow-hidden scrapbook-border scrapbook-shadow flex flex-col sm:flex-row hover:shadow-xl transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-green-5)] focus-visible:ring-offset-2"
                 >
                   {ann.image_url && (
                     <div className="sm:w-64 flex-shrink-0">
                       <img
                         src={ann.image_url}
                         alt={ann.title}
-                        className="w-full h-48 sm:h-full object-cover"
+                        className="w-full h-48 sm:h-full sm:min-h-[12rem] object-cover"
                         referrerPolicy="no-referrer"
                       />
                     </div>
                   )}
-                  <div className="p-6 flex flex-col justify-center">
+                  <div className="p-6 flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-3 mb-3">
                       {ann.tag && <span className={`text-xs font-bold px-3 py-1 rounded-full ${tagColor(ann.tag)}`}>{ann.tag}</span>}
                       <span className="text-sm text-gray-400">{new Date(ann.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
-                    <h3 className="text-xl font-heading font-bold text-[var(--color-green-5)] mb-3">{ann.title}</h3>
-                    <p className="text-[var(--color-text-main)] text-sm leading-relaxed">{ann.body}</p>
+                    <h3 className="text-xl font-heading font-bold text-[var(--color-green-5)] mb-2">{ann.title}</h3>
+                    {ann.body?.trim() && (
+                      <>
+                        <p className="text-[var(--color-text-main)] text-sm leading-relaxed line-clamp-3">{ann.body}</p>
+                        <span className="text-sm font-semibold text-[var(--color-green-5)] mt-2">Read more</span>
+                      </>
+                    )}
                   </div>
-                </motion.div>
+                </motion.button>
               ))}
             </div>
           </div>
         </section>
       )}
+
+      {/* Announcement detail modal */}
+      <AnimatePresence>
+        {selectedAnnouncement && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedAnnouncement(null)}
+          >
+            <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" aria-hidden />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="announcement-modal-title"
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-2xl max-h-[min(90vh,900px)] bg-white rounded-2xl scrapbook-shadow overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedAnnouncement(null)}
+                className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                aria-label="Close announcement"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="overflow-y-auto max-h-[min(90vh,900px)]">
+                {selectedAnnouncement.image_url && (
+                  <div className="bg-gray-100">
+                    <img
+                      src={selectedAnnouncement.image_url}
+                      alt={selectedAnnouncement.title}
+                      className="w-full h-auto object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    {selectedAnnouncement.tag && (
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${tagColor(selectedAnnouncement.tag)}`}>
+                        {selectedAnnouncement.tag}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-400">
+                      {new Date(selectedAnnouncement.published_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  <h2
+                    id="announcement-modal-title"
+                    className="text-2xl sm:text-3xl font-heading font-bold text-[var(--color-green-5)] mb-4"
+                  >
+                    {selectedAnnouncement.title}
+                  </h2>
+                  {selectedAnnouncement.body?.trim() && (
+                    <p className="text-[var(--color-text-main)] text-base leading-relaxed whitespace-pre-wrap">
+                      {selectedAnnouncement.body}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* FAQ */}
       {visibleFaqs.length > 0 && (
@@ -242,15 +339,26 @@ export default function HomiesCenter() {
               ))}
             </div>
 
-            <div className="mt-14 text-center">
-              <p className="text-lg text-[var(--color-text-main)] mb-6">Still have questions?</p>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+              viewport={{ once: true }}
+              className="mt-14 bg-[var(--color-green-5)] rounded-2xl px-8 py-12 text-center scrapbook-shadow"
+            >
+              <p className="text-3xl font-heading font-bold text-white mb-3">
+                Still have questions?
+              </p>
+              <p className="text-white/80 mb-8 text-lg max-w-xl mx-auto">
+                Can't find what you're looking for in our FAQs? Reach out and we'll get back to you as soon as we can.
+              </p>
               <Link
                 to="/contact"
-                className="inline-block bg-[var(--color-green-5)] hover:bg-[var(--color-green-4)] text-white font-bold py-3 px-10 rounded-full transition-all hover:scale-105 scrapbook-shadow"
+                className="inline-block bg-white text-[var(--color-green-5)] font-bold px-10 py-3 rounded-full hover:bg-[var(--color-green-1)] transition-all hover:scale-105 scrapbook-shadow text-lg"
               >
                 Contact Us
               </Link>
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
