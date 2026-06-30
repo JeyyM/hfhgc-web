@@ -83,7 +83,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   );
 
   return (
-    <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div className="rich-text-editor border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
       {/* Toolbar */}
       <div className="border-b-2 border-gray-200 p-2 flex flex-wrap gap-1 bg-gray-50">
         {/* Text Formatting */}

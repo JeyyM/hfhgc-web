@@ -1,7 +1,16 @@
 /* TipTap Editor Styles */
 .ProseMirror {
   outline: none;
-  min-height: 400px;
+}
+
+/* Admin editor — keep a comfortable typing area */
+.rich-text-editor .ProseMirror {
+  min-height: 300px;
+}
+
+/* Read-only project article — height follows content */
+.project-article-content .ProseMirror {
+  min-height: 0;
 }
 
 .ProseMirror p {

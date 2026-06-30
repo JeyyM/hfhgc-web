@@ -25,6 +25,11 @@ export default function ProjectDetail() {
     extensions: createProjectRichTextExtensions({ openOnClick: true }),
     editable: false,
     content: project?.content_json || { type: 'doc', content: [] },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-lg max-w-none focus:outline-none min-h-0',
+      },
+    },
   });
 
   // Update editor content when project loads
@@ -248,7 +253,7 @@ export default function ProjectDetail() {
           </h2>
           
           {editor ? (
-            <div className="prose prose-lg max-w-none">
+            <div className="project-article-content prose prose-lg max-w-none">
               <EditorContent editor={editor} />
             </div>
           ) : (
