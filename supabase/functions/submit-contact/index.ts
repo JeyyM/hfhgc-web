@@ -13,6 +13,9 @@
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *
  * EmailJS REST: https://www.emailjs.com/docs/rest-api/send/
+ * Set the template "To email" field to {{to_email}} (site_settings org_email).
+ * Typical template mapping: To {{to_email}}, From Name {{name}}, Reply To {{email}},
+ * subject/body {{from_name}}, {{from_email}}, {{subject}}, {{message}}.
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
@@ -76,12 +79,32 @@ async function verifyTurnstile(token: string, remoteip: string): Promise<boolean
 
 type EmailNotificationResult = 'sent' | 'not_configured' | 'failed';
 
+const DEFAULT_ORG_EMAIL = 'habitatforhumanitydlsu@gmail.com';
+
+async function getOrgContactEmail(
+  sb: ReturnType<typeof createClient>,
+): Promise<string> {
+  const { data, error } = await sb
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'org_email')
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[submit-contact] org_email lookup failed', error.message);
+  }
+
+  const value = typeof data?.value === 'string' ? data.value.trim() : '';
+  return value || DEFAULT_ORG_EMAIL;
+}
+
 /** Best-effort inbox notification; does not fail the request if EmailJS is down or unset. */
 async function sendEmailJsNotification(params: {
   from_name: string;
   from_email: string;
   subject: string;
   message: string;
+  to_email: string;
 }): Promise<EmailNotificationResult> {
   const serviceId = Deno.env.get('EMAILJS_SERVICE_ID');
   const templateId = Deno.env.get('EMAILJS_TEMPLATE_ID');
@@ -97,7 +120,16 @@ async function sendEmailJsNotification(params: {
     service_id: serviceId,
     template_id: templateId,
     user_id: publicKey,
-    template_params: params,
+    template_params: {
+      // Matches EmailJS "Contact Us" template (To / Reply To / body / subject)
+      to_email: params.to_email,
+      name: params.from_name,
+      email: params.from_email,
+      from_name: params.from_name,
+      from_email: params.from_email,
+      subject: params.subject,
+      message: params.message,
+    },
   };
   if (accessToken) payload.accessToken = accessToken;
 
@@ -217,6 +249,7 @@ Deno.serve(async (req: Request) => {
     from_email: email,
     subject,
     message,
+    to_email: await getOrgContactEmail(sb),
   });
 
   return jsonResponse({ ok: true, email_notification });

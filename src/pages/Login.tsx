@@ -12,16 +12,10 @@ import {
   isSessionDeadlineExpired,
 } from '../lib/supabase';
 
-// TODO(remove): dev login prefill — delete this block (and .env keys) before production
-const DEV_LOGIN_EMAIL = 'admin@hfhgc.org';
-const DEV_LOGIN_PASSWORD = 'xXGoodPassword_123&&Xx';
-
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState(DEV_LOGIN_EMAIL);
-  const [password, setPassword] = useState(
-    () => import.meta.env.VITE_DEV_LOGIN_PASSWORD ?? DEV_LOGIN_PASSWORD,
-  );
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,7 +155,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[var(--color-green-5)] transition-colors"
-                  placeholder="admin@hfhgc.org"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>

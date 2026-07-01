@@ -32,9 +32,9 @@ export default function Footer() {
                   </a>
                 );
               })}
-              <a href="mailto:habitatforhumanitydlsu@gmail.com" className="text-white hover:text-[var(--color-green-2)] transition-colors">
+              <Link to="/contact" className="text-white hover:text-[var(--color-green-2)] transition-colors" title="Contact us">
                 <Mail className="h-5 w-5" />
-              </a>
+              </Link>
             </div>
           </div>
 

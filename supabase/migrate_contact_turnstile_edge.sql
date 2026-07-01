@@ -28,3 +28,4 @@ GRANT ALL ON public.contact_submit_rate TO service_role;
 --   supabase functions deploy submit-contact --no-verify-jwt
 -- Or set the same keys in Dashboard → Edge Functions → Secrets.
 -- Turnstile: add VITE_TURNSTILE_SITE_KEY to Vercel/local .env; hostnames must match your deployed URL.
+-- EmailJS template "To email" must be {{to_email}} (org email from Admin → Site Settings).

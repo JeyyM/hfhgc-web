@@ -1,4 +1,4 @@
-﻿import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Send, Mail, MapPin, Phone } from 'lucide-react';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
@@ -168,7 +168,12 @@ export default function Contact() {
                 <div className="w-12 h-12 bg-[var(--color-green-1)] rounded-full flex items-center justify-center flex-shrink-0"><Mail className="text-[var(--color-green-5)]" size={20} /></div>
                 <div>
                   <h3 className="font-heading font-bold text-[var(--color-green-5)]">Email</h3>
-                  <p className="text-[var(--color-text-main)]">{settings.org_email || 'habitatforhumanitydlsu@gmail.com'}</p>
+                  <a
+                    href={`mailto:${settings.org_email || 'habitatforhumanitydlsu@gmail.com'}`}
+                    className="text-[var(--color-text-main)] hover:text-[var(--color-green-5)] hover:underline break-all"
+                  >
+                    {settings.org_email || 'habitatforhumanitydlsu@gmail.com'}
+                  </a>
                 </div>
               </div>
               <div className="flex items-start gap-4">
